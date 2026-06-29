@@ -6,6 +6,8 @@ import sqlite3
 import random
 import string
 import threading
+import time
+import requests
 from flask import Flask
 
 # === НАСТРОЙКИ БОТА ===
@@ -893,7 +895,7 @@ def admin_add_balance(message):
         parse_mode="HTML"
     )
 
-# === KEEP-ALIVE (тільки на Render Web Service) ===
+# === KEEP-ALIVE + САМОПІНГ (тільки на Render) ===
 app = Flask(__name__)
 
 @app.route('/')
@@ -904,10 +906,26 @@ def run_flask():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
 
+def self_ping():
+    render_url = os.environ.get("RENDER_EXTERNAL_URL", "")
+    if not render_url:
+        return
+    while True:
+        time.sleep(840)  # кожні 14 хвилин
+        try:
+            requests.get(render_url, timeout=10)
+            print("Self-ping OK")
+        except Exception as e:
+            print(f"Self-ping failed: {e}")
+
 # === ЗАПУСК ===
 if __name__ == "__main__":
     print("King Deals бот запущено...")
-    t = threading.Thread(target=run_flask)
-    t.daemon = True
-    t.start()
+    if os.environ.get("RENDER"):
+        t1 = threading.Thread(target=run_flask)
+        t1.daemon = True
+        t1.start()
+        t2 = threading.Thread(target=self_ping)
+        t2.daemon = True
+        t2.start()
     bot.infinity_polling(timeout=30, long_polling_timeout=20)
