@@ -920,12 +920,14 @@ def self_ping():
 
 # === ЗАПУСК ===
 if __name__ == "__main__":
-    print("King Deals бот запущено...")
-    if os.environ.get("RENDER"):
-        t1 = threading.Thread(target=run_flask)
-        t1.daemon = True
-        t1.start()
-        t2 = threading.Thread(target=self_ping)
-        t2.daemon = True
-        t2.start()
+    if not os.environ.get("RENDER"):
+        print("Не Render — бот не запускається щоб не конфліктувати.")
+        exit(0)
+    print("King Deals бот запущено на Render!")
+    t1 = threading.Thread(target=run_flask)
+    t1.daemon = True
+    t1.start()
+    t2 = threading.Thread(target=self_ping)
+    t2.daemon = True
+    t2.start()
     bot.infinity_polling(timeout=30, long_polling_timeout=20)
