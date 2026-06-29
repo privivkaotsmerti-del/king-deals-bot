@@ -9,7 +9,7 @@ import string
 # === НАСТРОЙКИ БОТА ===
 TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 ADMIN_ID = 123456789
-SUPPORT_USER = "king_helper"
+SUPPORT_USER = "king_dealsSupport"
 
 bot = telebot.TeleBot(TOKEN)
 
