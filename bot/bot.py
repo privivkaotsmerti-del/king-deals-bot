@@ -170,12 +170,13 @@ init_db()
 
 user_states = {}
 
-# === НИЖНЕЕ МЕНЮ — только кнопка "Старт" ===
-def get_start_reply_markup(lang='ru'):
-    tx = TEXTS[lang]
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add(types.KeyboardButton(tx['btn_start_menu']))
-    return markup
+# === РЕГИСТРАЦИЯ КОМАНД БОТА (меню "/" у поля ввода) ===
+def register_bot_commands():
+    bot.set_my_commands([
+        types.BotCommand("start", "Открыть главное меню")
+    ])
+
+register_bot_commands()
 
 # === ГЛАВНОЕ МЕНЮ (inline — отображается под сообщением) ===
 def get_welcome_inline(lang='ru'):
@@ -237,24 +238,10 @@ def start_command(message):
 
     lang = get_lang(user_id)
 
-    # Отправляем нижнее меню с одной кнопкой "Старт"
-    bot.send_message(
-        message.chat.id,
-        "👋" if lang == 'en' else "👋",
-        reply_markup=get_start_reply_markup(lang)
-    )
-
     if deal_link_id:
         show_deal_card(message, deal_link_id)
         return
 
-    send_main_menu(message.chat.id, user_id, lang)
-
-# === Обработка кнопки "Открыть меню" из нижнего меню ===
-@bot.message_handler(func=lambda msg: msg.text in ("▶️ Открыть меню", "▶️ Open Menu"))
-def open_menu_button(message):
-    user_id = message.from_user.id
-    lang = get_lang(user_id)
     send_main_menu(message.chat.id, user_id, lang)
 
 # === МОИ РЕКВИЗИТЫ ===
