@@ -5,6 +5,8 @@ from telebot import types
 import sqlite3
 import random
 import string
+import threading
+from flask import Flask
 
 # === НАСТРОЙКИ БОТА ===
 TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
@@ -891,7 +893,21 @@ def admin_add_balance(message):
         parse_mode="HTML"
     )
 
+# === KEEP-ALIVE (тільки на Render Web Service) ===
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "King Deals is alive!", 200
+
+def run_flask():
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
+
 # === ЗАПУСК ===
 if __name__ == "__main__":
     print("King Deals бот запущено...")
+    t = threading.Thread(target=run_flask)
+    t.daemon = True
+    t.start()
     bot.infinity_polling(timeout=30, long_polling_timeout=20)
