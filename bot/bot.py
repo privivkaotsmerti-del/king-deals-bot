@@ -930,4 +930,15 @@ if __name__ == "__main__":
     t2 = threading.Thread(target=self_ping)
     t2.daemon = True
     t2.start()
-    bot.infinity_polling(timeout=30, long_polling_timeout=20)
+    # Очищаємо вебхук і чекаємо поки старий polling завершиться
+    try:
+        bot.delete_webhook(drop_pending_updates=True)
+    except Exception:
+        pass
+    time.sleep(5)
+    while True:
+        try:
+            bot.infinity_polling(timeout=30, long_polling_timeout=20)
+        except Exception as e:
+            print(f"Polling error: {e}. Retry in 10s...")
+            time.sleep(10)
