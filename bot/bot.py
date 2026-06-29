@@ -249,11 +249,12 @@ def start_command(message):
     lang = get_lang(user_id)
 
     # Прибираємо стару reply-клавіатуру якщо залишилась
-    bot.send_message(
+    remove_msg = bot.send_message(
         message.chat.id,
-        "​",  # невидимый символ
+        ".",
         reply_markup=types.ReplyKeyboardRemove()
     )
+    bot.delete_message(message.chat.id, remove_msg.message_id)
 
     if deal_link_id:
         show_deal_card(message, deal_link_id)
