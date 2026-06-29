@@ -191,13 +191,25 @@ def get_welcome_inline(lang='ru'):
     markup.add(types.InlineKeyboardButton(tx['btn_lang'], callback_data="lang_toggle"))
     return markup
 
+BANNER_PATH = os.path.join(os.path.dirname(__file__), "banner.png")
+
 def send_main_menu(chat_id, user_id, lang):
-    bot.send_message(
-        chat_id,
-        build_welcome_text(lang),
-        parse_mode="HTML",
-        reply_markup=get_welcome_inline(lang)
-    )
+    if os.path.exists(BANNER_PATH):
+        with open(BANNER_PATH, "rb") as photo:
+            bot.send_photo(
+                chat_id,
+                photo,
+                caption=build_welcome_text(lang),
+                parse_mode="HTML",
+                reply_markup=get_welcome_inline(lang)
+            )
+    else:
+        bot.send_message(
+            chat_id,
+            build_welcome_text(lang),
+            parse_mode="HTML",
+            reply_markup=get_welcome_inline(lang)
+        )
 
 # === /start ===
 @bot.message_handler(commands=['start'])
@@ -235,6 +247,13 @@ def start_command(message):
     conn.close()
 
     lang = get_lang(user_id)
+
+    # Прибираємо стару reply-клавіатуру якщо залишилась
+    bot.send_message(
+        message.chat.id,
+        "​",  # невидимый символ
+        reply_markup=types.ReplyKeyboardRemove()
+    )
 
     if deal_link_id:
         show_deal_card(message, deal_link_id)
