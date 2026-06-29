@@ -6,3 +6,39 @@ id = "LxIyCZt6YLA9G_waH-2Pd"
 uri = "file://bot/banner.png"
 type = "image"
 title = "generated_image"
+
+[[generated]]
+id = "oc9O_mOSPH9FyP2sgI2vs"
+uri = "file://bot/banner_deals.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "4c9c6LwrKr3Ew_zRxUlJT"
+uri = "file://bot/banner_balance.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "-DDN_llCtMRytlTAIMP-U"
+uri = "file://bot/banner_reqs.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "4zXsZCyA_xXuFLxX5OSXB"
+uri = "file://bot/banner_ref.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "tf9MGjLisX66X-iyE2chE"
+uri = "file://bot/banner_create.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "SHGHIa2MWsYZL_HT_4Umg"
+uri = "file://bot/banner_bind.png"
+type = "image"
+title = "generated_image"
