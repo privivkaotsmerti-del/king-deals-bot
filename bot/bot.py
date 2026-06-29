@@ -55,7 +55,6 @@ TEXTS = {
         'btn_bind':       "➕ Привязать реквизиты",
         'btn_change_req': "🔄 Изменить реквизиты",
         'btn_create_deal':"🤝 Создать сделку",
-        'btn_start_menu': "▶️ Открыть меню",
         'deals_empty':    "📭 <b>У вас пока нет сделок.</b>",
         'deals_title':    "📋 <b>Ваши сделки (последние 10):</b>\n\n",
         'deal_status': {
@@ -83,7 +82,6 @@ TEXTS = {
         'btn_bind':       "➕ Add Requisites",
         'btn_change_req': "🔄 Change Requisites",
         'btn_create_deal':"🤝 Create Deal",
-        'btn_start_menu': "▶️ Open Menu",
         'deals_empty':    "📭 <b>You have no deals yet.</b>",
         'deals_title':    "📋 <b>Your deals (last 10):</b>\n\n",
         'deal_status': {
