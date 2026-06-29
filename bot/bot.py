@@ -857,12 +857,9 @@ def my_deals(message, user_id=None, chat_id=None, edit_message_id=None):
     else:
         bot.send_message(chat_id, text, parse_mode="HTML", reply_markup=markup)
 
-# === ADMIN: /add user_id amount currency ===
+# === /add user_id amount currency ===
 @bot.message_handler(commands=['add'])
 def admin_add_balance(message):
-    if message.from_user.id != ADMIN_ID:
-        return
-
     parts = message.text.split()
     if len(parts) != 4:
         bot.send_message(message.chat.id, "Формат: /add user_id сума валюта")
