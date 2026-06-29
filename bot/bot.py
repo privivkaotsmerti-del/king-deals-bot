@@ -9,6 +9,7 @@ import threading
 import time
 import requests
 from flask import Flask
+from waitress import serve
 
 # === НАСТРОЙКИ БОТА ===
 TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
@@ -904,7 +905,7 @@ def home():
 
 def run_flask():
     port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    serve(app, host="0.0.0.0", port=port)
 
 def self_ping():
     render_url = os.environ.get("RENDER_EXTERNAL_URL", "")
