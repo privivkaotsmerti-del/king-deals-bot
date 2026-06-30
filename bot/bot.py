@@ -176,22 +176,34 @@ def notify_owner(text):
     except Exception:
         pass
 
+import re as _re
+
+def _caption_safe(text):
+    """Видаляємо теги які не підтримуються в caption:
+    - <tg-emoji ...>FALLBACK</tg-emoji>  → FALLBACK
+    - <blockquote> → (видаляємо)
+    Дозволяємо: <b> <i> <u> <s> <code> <a>
+    """
+    # tg-emoji → залишаємо тільки текст всередині тегу
+    out = _re.sub(r'<tg-emoji[^>]*>(.*?)</tg-emoji>', r'\1', text, flags=_re.DOTALL)
+    # blockquote → звичайний текст
+    out = out.replace("<blockquote>", "").replace("</blockquote>", "")
+    return out
+
 def send_screen(chat_id, banner_path, text, markup, old_msg_id=None):
     if old_msg_id:
         try:
             bot.delete_message(chat_id, old_msg_id)
         except Exception:
             pass
-    # Telegram не підтримує <blockquote> в caption — замінюємо
-    clean = text.replace("<blockquote>", "<i>").replace("</blockquote>", "</i>")
+    caption = _caption_safe(text)
     try:
         with open(banner_path, "rb") as f:
-            bot.send_photo(chat_id, f, caption=clean, parse_mode="HTML", reply_markup=markup)
-    except Exception as e:
-        # fallback — текстове повідомлення без HTML
+            bot.send_photo(chat_id, f, caption=caption, parse_mode="HTML", reply_markup=markup)
+    except Exception:
+        # fallback — текстове повідомлення
         try:
-            import re
-            plain = re.sub(r'<[^>]+>', '', clean)
+            plain = _re.sub(r'<[^>]+>', '', caption)
             bot.send_message(chat_id, plain, reply_markup=markup)
         except Exception:
             pass
