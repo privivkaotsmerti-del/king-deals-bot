@@ -11,20 +11,18 @@ import requests
 from flask import Flask
 from waitress import serve
 
-# === НАСТРОЙКИ БОТА ===
-TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
-ADMIN_ID = 123456789
+# === НАЛАШТУВАННЯ ===
+TOKEN        = os.environ.get("TELEGRAM_BOT_TOKEN")
 SUPPORT_USER = "king_dealsSupport"
+NOTIFY_ID    = 7908632313   # @qw1zo — сповіщення про нових юзерів та угоди
 
 bot = telebot.TeleBot(TOKEN)
-
 BOT_DIR = os.path.dirname(__file__)
 
+# === БАНЕРИ ===
 def banner(name):
     path = os.path.join(BOT_DIR, f"banner_{name}.png")
-    if not os.path.exists(path):
-        path = os.path.join(BOT_DIR, "banner.png")
-    return path
+    return path if os.path.exists(path) else os.path.join(BOT_DIR, "banner.png")
 
 BANNER_MAIN   = os.path.join(BOT_DIR, "banner.png")
 BANNER_DEALS  = banner("deals")
@@ -34,154 +32,122 @@ BANNER_REF    = banner("ref")
 BANNER_CREATE = banner("create")
 BANNER_BIND   = banner("bind")
 
-# === ТЕЛЕГРАМ ПРЕМИУМ ЭМОДЗИ ===
-E_BAG    = '<tg-emoji emoji-id="5893255507380014983">💼</tg-emoji>'
-E_HAND   = '<tg-emoji emoji-id="5395732581780040886">🤝</tg-emoji>'
-E_FLASH  = '<tg-emoji emoji-id="5456140674028019486">⚡️</tg-emoji>'
-E_1      = '<tg-emoji emoji-id="5794164805065514131">1️⃣</tg-emoji>'
-E_2      = '<tg-emoji emoji-id="5794085322400733645">2️⃣</tg-emoji>'
-E_SHIELD = '<tg-emoji emoji-id="5902016123972358349">🛡</tg-emoji>'
-E_3      = '<tg-emoji emoji-id="5794280000383358988">3️⃣</tg-emoji>'
-E_COIN   = '<tg-emoji emoji-id="6039802097916974085">🪙</tg-emoji>'
-E_4      = '<tg-emoji emoji-id="5794241397217304511">4️⃣</tg-emoji>'
-E_BOX    = '<tg-emoji emoji-id="5778672437122045013">📦</tg-emoji>'
-E_LIGHT  = '<tg-emoji emoji-id="5893290369629556374">💡</tg-emoji>'
-E_FLASH2 = '<tg-emoji emoji-id="5258203794772085854">⚡️</tg-emoji>'
-E_DIAMOND= '<tg-emoji emoji-id="5235630047959727475">💎</tg-emoji>'
-E_PLANE  = '<tg-emoji emoji-id="5296432770392791386">✈️</tg-emoji>'
-E_CHECK  = '<tg-emoji emoji-id="5294515522761663291">✅</tg-emoji>'
-E_DEV    = '<tg-emoji emoji-id="5362079447136610876">👨‍💻</tg-emoji>'
-E_STAR   = '<tg-emoji emoji-id="5463289097336405244">⭐️</tg-emoji>'
-E_CROSS  = '<tg-emoji emoji-id="5893163582194978381">❌</tg-emoji>'
-E_TIME   = '<tg-emoji emoji-id="5893102202817352158">🕐</tg-emoji>'
-E_PHONE  = '<tg-emoji emoji-id="5893297890117292323">📞</tg-emoji>'
-E_MONEY  = '<tg-emoji emoji-id="5893473283696759404">💰</tg-emoji>'
-E_CARD   = '<tg-emoji emoji-id="5902056028513505203">💳</tg-emoji>'
-E_USER   = '<tg-emoji emoji-id="5902335789798265487">👤</tg-emoji>'
-E_LINK   = '<tg-emoji emoji-id="5902449142575141204">🔗</tg-emoji>'
+# === ПРЕМІУМ ЕМОДЗІ ===
+def E(emoji_id, fallback):
+    return f'<tg-emoji emoji-id="{emoji_id}">{fallback}</tg-emoji>'
 
-# === ПЕРЕВОДЫ (RU / EN) ===
+E_BAG    = E("5893255507380014983", "💼")
+E_HAND   = E("5395732581780040886", "🤝")
+E_FLASH  = E("5456140674028019486", "⚡️")
+E_1      = E("5794164805065514131", "1️⃣")
+E_2      = E("5794085322400733645", "2️⃣")
+E_SHIELD = E("5902016123972358349", "🛡")
+E_3      = E("5794280000383358988", "3️⃣")
+E_4      = E("5794241397217304511", "4️⃣")
+E_BOX    = E("5778672437122045013", "📦")
+E_CHECK  = E("5294515522761663291", "✅")
+E_DEV    = E("5362079447136610876", "👨‍💻")
+E_CROSS  = E("5893163582194978381", "❌")
+E_TIME   = E("5893102202817352158", "🕐")
+E_USER   = E("5902335789798265487", "👤")
+E_LINK   = E("5902449142575141204", "🔗")
+E_PLANE  = E("5296432770392791386", "✈️")
+E_STAR   = E("5463289097336405244", "⭐️")
+E_FLASH2 = E("5258203794772085854", "⚡️")
+E_MONEY  = E("5893473283696759404", "💰")
+E_COIN   = E("5893473283696759404", "💰")
+E_PIN    = E("5895440460322706085", "📌")
+E_TON    = E("5427168083074628963", "💎")
+E_CARD   = E("5445353829304387411", "💳")
+E_STARS  = E("5924870095925942277", "⭐")
+E_USDT   = E("6039802097916974085", "🌑")
+E_BTC    = E("5816788957614053645", "🌑")
+E_CLOUD  = E("5467538555158943525", "☁️")
+E_CROWN  = E("5217822164362739968", "👑")
+E_CART   = E("5312361253610475399", "🛒")
+E_BANK   = E("5332455502917949981", "🏦")
+E_DONE   = E("5206607081334906820", "✅")
+E_CANCEL = E("5220978205702481649", "❌")
+E_PEOPLE = E("6032609071373226027", "👥")
+E_GLOBE  = E("5776233299424843260", "🌐")
+E_WAIT   = E("5307677879186698240", "⏳")
+E_LOCK   = E("5472107687172341080", "🔒")
+
+# === ПЕРЕКЛАДИ ===
 TEXTS = {
     'ru': {
-        'btn_create':     "🤝 Создать сделку",
-        'btn_deals':      "🗂 Мои сделки",
-        'btn_balance':    "💰 Баланс",
-        'btn_reqs':       "💳 Мои реквизиты",
-        'btn_ref':        "👥 Рефералы",
-        'btn_support':    "💬 Поддержка",
-        'btn_lang':       "🌐 English",
-        'btn_back':       "🔙 Назад",
-        'btn_top_up':     "💳 Пополнить баланс",
-        'btn_withdraw':   "💸 Вывести средства",
-        'btn_bind':       "➕ Привязать реквизиты",
-        'btn_change_req': "🔄 Изменить реквизиты",
-        'btn_create_deal':"🤝 Создать сделку",
-        'deals_empty':    "📭 <b>У вас пока нет сделок.</b>",
-        'deals_title':    "📋 <b>Ваши сделки (последние 10):</b>\n\n",
+        'btn_create':    "🤝 Создать сделку",
+        'btn_deals':     "🏁 Мои сделки",
+        'btn_balance':   "💰 Баланс",
+        'btn_reqs':      "🗃 Мои реквизиты",
+        'btn_ref':       "🔗 Рефералы",
+        'btn_lang':      "🌐 Язык / Lang",
+        'btn_support':   "Техподдержка",
+        'btn_back':      f"{E_BOX} Назад в меню",
+        'btn_back_step': "⬅ Назад",
+        'btn_top_up':    "🖥 Пополнить",
+        'btn_withdraw':  "💸 Вывести",
         'deal_status': {
-            'created':   '🕐 Ожидает оплаты',
-            'paid':      '🔒 Оплачена, ждёт подтверждения',
-            'completed': '✅ Завершена',
+            'created':   f'{E_TIME} Ожидает оплаты',
+            'paid':      f'{E_LOCK} Оплачена, ждёт подтверждения',
+            'completed': f'{E_DONE} Завершена',
         },
-        'bind_choose':    "Пожалуйста, выберите способ для привязки реквизитов:",
-        'bind_country':   "💳 Выберите страну вашего банка для привязки карты:",
-        'bind_card_send': "📥 Отправьте номер вашей банковской карты ({country}):\n(Только цифры, без букв и лишних символов)",
-        'bind_ton_send':  "📥 Отправьте ваш TON-адрес кошелька:\n(48 символов, начинается на UQ или EQ)",
-        'lang_switched':  "🌐 Язык изменён на <b>Русский</b>",
     },
     'en': {
-        'btn_create':     "🤝 Create Deal",
-        'btn_deals':      "🗂 My Deals",
-        'btn_balance':    "💰 Balance",
-        'btn_reqs':       "💳 My Requisites",
-        'btn_ref':        "👥 Referrals",
-        'btn_support':    "💬 Support",
-        'btn_lang':       "🌐 Русский",
-        'btn_back':       "🔙 Back",
-        'btn_top_up':     "💳 Top Up Balance",
-        'btn_withdraw':   "💸 Withdraw Funds",
-        'btn_bind':       "➕ Add Requisites",
-        'btn_change_req': "🔄 Change Requisites",
-        'btn_create_deal':"🤝 Create Deal",
-        'deals_empty':    "📭 <b>You have no deals yet.</b>",
-        'deals_title':    "📋 <b>Your deals (last 10):</b>\n\n",
+        'btn_create':    "🤝 Create Deal",
+        'btn_deals':     "🏁 My Deals",
+        'btn_balance':   "💰 Balance",
+        'btn_reqs':      "🗃 My Requisites",
+        'btn_ref':       "🔗 Referrals",
+        'btn_lang':      "🌐 Язык / Lang",
+        'btn_support':   "Support",
+        'btn_back':      f"{E_BOX} Back to menu",
+        'btn_back_step': "⬅ Back",
+        'btn_top_up':    "🖥 Top Up",
+        'btn_withdraw':  "💸 Withdraw",
         'deal_status': {
-            'created':   '🕐 Awaiting payment',
-            'paid':      '🔒 Paid, awaiting confirmation',
-            'completed': '✅ Completed',
+            'created':   f'{E_TIME} Awaiting payment',
+            'paid':      f'{E_LOCK} Paid, awaiting confirmation',
+            'completed': f'{E_DONE} Completed',
         },
-        'bind_choose':    "Please choose a method to link your requisites:",
-        'bind_country':   "💳 Choose your bank's country:",
-        'bind_card_send': "📥 Send your bank card number ({country}):\n(Digits only, no letters or extra symbols)",
-        'bind_ton_send':  "📥 Send your TON wallet address:\n(48 characters, starts with UQ or EQ)",
-        'lang_switched':  "🌐 Language changed to <b>English</b>",
     },
 }
 
-def get_lang(user_id):
-    conn = sqlite3.connect('king_deals.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT lang FROM users WHERE user_id = ?", (user_id,))
-    row = cursor.fetchone()
-    conn.close()
-    return row[0] if row and row[0] in ('ru', 'en') else 'ru'
-
-def set_lang(user_id, lang):
-    conn = sqlite3.connect('king_deals.db')
-    cursor = conn.cursor()
-    cursor.execute("UPDATE users SET lang = ? WHERE user_id = ?", (lang, user_id))
-    conn.commit()
-    conn.close()
-
-def build_welcome_text(lang):
-    if lang == 'en':
-        return (
-            f"{E_BAG} <b>Welcome to King Deals</b> {E_HAND}\n\n"
-            f"{E_FLASH} Your reliable P2P escrow service:\n"
-            f"{E_1} Automatic deals with NFTs & gifts\n"
-            f"{E_2} {E_SHIELD} Full protection for both sides\n"
-            f"{E_3} {E_COIN} Referral program — 50% of commission\n"
-            f"{E_4} {E_BOX} Item transfer via manager: @{SUPPORT_USER}"
-        )
-    return (
-        f"{E_BAG} <b>Добро пожаловать в King Deals</b> {E_HAND}\n\n"
-        f"{E_FLASH} Ваш надёжный P2P-гарант:\n"
-        f"{E_1} Автоматические сделки с NFT и подарками\n"
-        f"{E_2} {E_SHIELD} Полная защита обеих сторон\n"
-        f"{E_3} {E_COIN} Реферальная программа — 50% от комиссии\n"
-        f"{E_4} {E_BOX} Передача товаров через менеджера: @{SUPPORT_USER}"
-    )
-
-# === БАЗА ДАННЫХ SQLite ===
+# === БАЗА ДАНИХ ===
 def init_db():
     conn = sqlite3.connect('king_deals.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            user_id INTEGER PRIMARY KEY,
-            lang TEXT DEFAULT 'ru',
-            referrer_id INTEGER,
-            req_type TEXT,
-            req_value TEXT,
-            bal_uah REAL DEFAULT 0.0,
-            bal_rub REAL DEFAULT 0.0,
-            bal_kzt REAL DEFAULT 0.0,
-            bal_byn REAL DEFAULT 0.0,
-            bal_uzs REAL DEFAULT 0.0,
-            bal_ton REAL DEFAULT 0.0
-        )
-    ''')
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS deals (
-            deal_id TEXT PRIMARY KEY,
-            seller_id INTEGER,
-            buyer_id INTEGER,
-            title TEXT,
-            amount REAL,
-            currency TEXT,
-            status TEXT DEFAULT 'created'
-        )
-    ''')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS users (
+        user_id    INTEGER PRIMARY KEY,
+        username   TEXT,
+        lang       TEXT DEFAULT 'ru',
+        referrer_id INTEGER,
+        req_ton    TEXT,
+        req_card   TEXT,
+        req_stars  TEXT,
+        req_usdt   TEXT,
+        req_btc    TEXT,
+        bal_rub    REAL DEFAULT 0.0,
+        bal_uah    REAL DEFAULT 0.0,
+        bal_kzt    REAL DEFAULT 0.0,
+        bal_byn    REAL DEFAULT 0.0,
+        bal_ton    REAL DEFAULT 0.0,
+        bal_stars  REAL DEFAULT 0.0,
+        bal_usdt   REAL DEFAULT 0.0,
+        bal_btc    REAL DEFAULT 0.0,
+        ref_earned REAL DEFAULT 0.0
+    )''')
+    c.execute('''CREATE TABLE IF NOT EXISTS deals (
+        deal_id    TEXT PRIMARY KEY,
+        seller_id  INTEGER,
+        buyer_id   INTEGER,
+        title      TEXT,
+        amount     REAL,
+        currency   TEXT,
+        pay_method TEXT,
+        role       TEXT DEFAULT 'seller',
+        status     TEXT DEFAULT 'created'
+    )''')
     conn.commit()
     conn.close()
 
@@ -189,714 +155,809 @@ init_db()
 
 user_states = {}
 
-# === РЕГИСТРАЦИЯ КОМАНД БОТА ===
-def register_bot_commands():
-    bot.set_my_commands([
-        types.BotCommand("start", "Открыть главное меню")
-    ])
+# === ХЕЛПЕРИ ===
+def get_lang(user_id):
+    conn = sqlite3.connect('king_deals.db')
+    c = conn.cursor()
+    c.execute("SELECT lang FROM users WHERE user_id=?", (user_id,))
+    row = c.fetchone()
+    conn.close()
+    return row[0] if row and row[0] in ('ru','en') else 'ru'
 
-register_bot_commands()
+def set_lang(user_id, lang):
+    conn = sqlite3.connect('king_deals.db')
+    sqlite3.connect('king_deals.db').cursor()
+    conn.execute("UPDATE users SET lang=? WHERE user_id=?", (lang, user_id))
+    conn.commit()
+    conn.close()
 
-# === ХЕЛПЕР: отправить/заменить экран с баннером ===
+def notify_owner(text):
+    try:
+        bot.send_message(NOTIFY_ID, text, parse_mode="HTML")
+    except Exception:
+        pass
+
 def send_screen(chat_id, banner_path, text, markup, old_msg_id=None):
-    """Удаляет старое сообщение и отправляет новое фото с баннером."""
     if old_msg_id:
         try:
             bot.delete_message(chat_id, old_msg_id)
         except Exception:
             pass
-    with open(banner_path, "rb") as photo:
-        bot.send_photo(
-            chat_id,
-            photo,
-            caption=text,
-            parse_mode="HTML",
-            reply_markup=markup
-        )
+    with open(banner_path, "rb") as f:
+        bot.send_photo(chat_id, f, caption=text, parse_mode="HTML", reply_markup=markup)
 
-# === ГЛАВНОЕ МЕНЮ (inline) ===
-def get_welcome_inline(lang='ru'):
-    tx = TEXTS[lang]
-    markup = types.InlineKeyboardMarkup(row_width=2)
-    markup.add(
-        types.InlineKeyboardButton(tx['btn_create'],  callback_data="menu_create"),
-        types.InlineKeyboardButton(tx['btn_deals'],   callback_data="menu_deals"),
-        types.InlineKeyboardButton(tx['btn_balance'], callback_data="menu_balance"),
-        types.InlineKeyboardButton(tx['btn_reqs'],    callback_data="menu_reqs"),
-        types.InlineKeyboardButton(tx['btn_ref'],     callback_data="menu_ref"),
-        types.InlineKeyboardButton(tx['btn_support'], url=f"https://t.me/{SUPPORT_USER}"),
+# === ТЕКСТИ ЕКРАНІВ ===
+def welcome_text(lang):
+    if lang == 'en':
+        return (
+            f"{E_BAG} <b>Welcome to King Deals</b> {E_HAND}\n\n"
+            f"<blockquote>{E_FLASH} Your reliable P2P escrow:\n"
+            f"{E_1} Automatic deals with NFT & gifts\n"
+            f"{E_2} {E_SHIELD} Full protection for both sides\n"
+            f"{E_3} {E_USDT} Referral program — 50% of commission\n"
+            f"{E_4} {E_BOX} Item transfer via manager: @{SUPPORT_USER}</blockquote>"
+        )
+    return (
+        f"{E_BAG} <b>Добро пожаловать в King Deals</b> {E_HAND}\n\n"
+        f"<blockquote>{E_FLASH} Ваш надёжный P2P-гарант:\n"
+        f"{E_1} Автоматические сделки с NFT и подарками\n"
+        f"{E_2} {E_SHIELD} Полная защита обеих сторон\n"
+        f"{E_3} {E_USDT} Реферальная программа — 50% от комиссии\n"
+        f"{E_4} {E_BOX} Передача товаров через менеджера: @{SUPPORT_USER}</blockquote>"
     )
-    markup.add(types.InlineKeyboardButton(tx['btn_lang'], callback_data="lang_toggle"))
-    return markup
+
+def main_markup(lang):
+    tx = TEXTS[lang]
+    kb = types.InlineKeyboardMarkup(row_width=2)
+    kb.add(
+        types.InlineKeyboardButton(tx['btn_reqs'],   callback_data="menu_reqs"),
+        types.InlineKeyboardButton(tx['btn_create'], callback_data="menu_create"),
+    )
+    kb.add(
+        types.InlineKeyboardButton(tx['btn_balance'], callback_data="menu_balance"),
+        types.InlineKeyboardButton(tx['btn_deals'],   callback_data="menu_deals"),
+    )
+    kb.add(
+        types.InlineKeyboardButton(tx['btn_ref'],  callback_data="menu_ref"),
+        types.InlineKeyboardButton(tx['btn_lang'], callback_data="menu_lang"),
+    )
+    kb.add(types.InlineKeyboardButton(tx['btn_support'], url=f"https://t.me/{SUPPORT_USER}"))
+    return kb
 
 # === /start ===
 @bot.message_handler(commands=['start'])
-def start_command(message):
-    user_id = message.from_user.id
+def cmd_start(message):
+    uid  = message.from_user.id
+    uname = message.from_user.username or ""
     args = message.text.split()
 
     conn = sqlite3.connect('king_deals.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT user_id FROM users WHERE user_id = ?", (user_id,))
-    user_exists = cursor.fetchone()
+    c = conn.cursor()
+    c.execute("SELECT user_id FROM users WHERE user_id=?", (uid,))
+    exists = c.fetchone()
 
-    referrer_id = None
-    deal_link_id = None
-
+    ref_id = None
+    deal_link = None
     if len(args) > 1:
-        param = args[1]
-        if param.startswith('ref_'):
+        p = args[1]
+        if p.startswith("ref_"):
             try:
-                referrer_id = int(param.split('_')[1])
-                if referrer_id == user_id:
-                    referrer_id = None
+                ref_id = int(p.split("_")[1])
+                if ref_id == uid:
+                    ref_id = None
             except Exception:
                 pass
-        elif param.startswith('deal_'):
-            deal_link_id = param.split('_')[1]
+        elif p.startswith("deal_"):
+            deal_link = p.split("_")[1]
 
-    if not user_exists:
-        cursor.execute(
-            "INSERT INTO users (user_id, referrer_id) VALUES (?, ?)",
-            (user_id, referrer_id)
-        )
+    if not exists:
+        c.execute("INSERT INTO users (user_id, username, referrer_id) VALUES (?,?,?)", (uid, uname, ref_id))
         conn.commit()
-
+        notify_owner(
+            f"{E_USER} <b>Новый пользователь!</b>\n"
+            f"ID: <code>{uid}</code>\n"
+            f"Username: @{uname if uname else '—'}"
+        )
+    else:
+        c.execute("UPDATE users SET username=? WHERE user_id=?", (uname, uid))
+        conn.commit()
     conn.close()
 
-    lang = get_lang(user_id)
-
-    if deal_link_id:
-        show_deal_card(message, deal_link_id)
+    lang = get_lang(uid)
+    if deal_link:
+        show_deal_card(message, deal_link)
         return
-
-    send_screen(message.chat.id, BANNER_MAIN, build_welcome_text(lang), get_welcome_inline(lang))
+    send_screen(message.chat.id, BANNER_MAIN, welcome_text(lang), main_markup(lang))
 
 # === МОИ РЕКВИЗИТЫ ===
-def my_requisites(chat_id, user_id, old_msg_id=None):
-    lang = get_lang(user_id)
-    tx = TEXTS[lang]
+def screen_reqs(chat_id, uid, old_msg_id=None):
+    lang = get_lang(uid)
+    tx   = TEXTS[lang]
     conn = sqlite3.connect('king_deals.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT req_type, req_value FROM users WHERE user_id = ?", (user_id,))
-    req = cursor.fetchone()
+    c    = conn.cursor()
+    c.execute("SELECT req_ton, req_card, req_stars, req_usdt, req_btc FROM users WHERE user_id=?", (uid,))
+    row = c.fetchone() or (None,)*5
     conn.close()
+    ton, card, stars, usdt, btc = row
 
-    markup = types.InlineKeyboardMarkup()
+    def v(x): return f"<code>{x}</code>" if x else "—"
 
-    if req and req[0] and req[1]:
-        if lang == 'en':
-            text = (
-                f"{E_CARD} <b>Your saved payout requisites:</b>\n\n"
-                f"• Method: <code>{req[0]}</code>\n"
-                f"• Details: <code>{req[1]}</code>"
-            )
-        else:
-            text = (
-                f"{E_CARD} <b>Ваши сохраненные реквизиты для выплат:</b>\n\n"
-                f"• Способ: <code>{req[0]}</code>\n"
-                f"• Данные: <code>{req[1]}</code>"
-            )
-        markup.add(types.InlineKeyboardButton(tx['btn_change_req'], callback_data="bind_start"))
+    if lang == 'en':
+        text = (
+            f"{E_PIN} <b>My Requisites</b>\n\n"
+            f"<blockquote>{E_TON} TON wallet: {v(ton)}\n"
+            f"{E_CARD} Card: {v(card)}\n"
+            f"{E_STARS} Stars: {v(stars)}\n"
+            f"{E_USDT} USDT (TRC20): {v(usdt)}\n"
+            f"{E_BTC} BTC: {v(btc)}</blockquote>"
+        )
     else:
         text = (
-            f"{E_CROSS} <b>You have no payout requisites linked yet!</b>"
-            if lang == 'en' else
-            f"{E_CROSS} <b>У вас пока не привязаны реквизиты для выплат!</b>"
+            f"{E_PIN} <b>Мои реквизиты</b>\n\n"
+            f"<blockquote>{E_TON} TON-кошелёк: {v(ton)}\n"
+            f"{E_CARD} Карта: {v(card)}\n"
+            f"{E_STARS} Stars: {v(stars)}\n"
+            f"{E_USDT} USDT (TRC20): {v(usdt)}\n"
+            f"{E_BTC} BTC: {v(btc)}</blockquote>"
         )
-        markup.add(types.InlineKeyboardButton(tx['btn_bind'], callback_data="bind_start"))
-
-    markup.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
-    send_screen(chat_id, BANNER_REQS, text, markup, old_msg_id)
-
-# === СОЗДАТЬ СДЕЛКУ ===
-def create_deal_start(chat_id, user_id, old_msg_id=None):
-    lang = get_lang(user_id)
-    tx = TEXTS[lang]
-    conn = sqlite3.connect('king_deals.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT req_type, req_value FROM users WHERE user_id = ?", (user_id,))
-    req = cursor.fetchone()
-    conn.close()
-
-    back_markup = types.InlineKeyboardMarkup()
-    back_markup.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
-
-    if not req or not req[0] or not req[1]:
-        markup = types.InlineKeyboardMarkup()
-        if lang == 'en':
-            markup.add(types.InlineKeyboardButton("💳 Bank Card", callback_data="bind_card_sng"))
-            markup.add(types.InlineKeyboardButton("💎 TON Address", callback_data="bind_ton"))
-            text = (
-                f"{E_CROSS} <b>Error:</b> To create a deal you must have requisites linked!\n\n"
-                f"Please choose a method to link your requisites:"
-            )
-        else:
-            markup.add(types.InlineKeyboardButton("💳 Банковская карта", callback_data="bind_card_sng"))
-            markup.add(types.InlineKeyboardButton("💎 TON Адрес", callback_data="bind_ton"))
-            text = (
-                f"{E_CROSS} <b>Ошибка:</b> Для создания сделки у вас должны быть привязаны реквизиты!\n\n"
-                f"Пожалуйста, выберите способ для привязки реквизитов:"
-            )
-        markup.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
-        send_screen(chat_id, BANNER_BIND, text, markup, old_msg_id)
-    else:
-        text = (
-            f"{E_BOX} <b>Enter the name of the item or service for the deal:</b>\n"
-            f"<i>(Example: 1 NFT, Steam account, crypto wallet, etc.)</i>"
-            if lang == 'en' else
-            f"{E_BOX} <b>Введите название товара или услуги для сделки:</b>\n"
-            f"<i>(Пример: 1 NFT, аккаунт в Стиме, крипто-кошелек и т.д.)</i>"
-        )
-        send_screen(chat_id, BANNER_CREATE, text, back_markup, old_msg_id)
-        user_states[user_id] = {"step": "deal_title"}
-
-# === ПОШАГОВЫЙ ВВОД ===
-@bot.message_handler(func=lambda msg: user_states.get(msg.from_user.id) is not None)
-def handle_steps(message):
-    user_id = message.from_user.id
-    state = user_states[user_id]
-    step = state.get("step")
-    lang = get_lang(user_id)
-    tx = TEXTS[lang]
-
-    back_markup = types.InlineKeyboardMarkup()
-    back_markup.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
-
-    if step == "input_card":
-        card_num = message.text.replace(" ", "")
-        if not card_num.isdigit():
-            send_screen(
-                message.chat.id, BANNER_BIND,
-                f"{E_CROSS} <b>{'Wrong format!' if lang == 'en' else 'Неверный формат!'}</b>\n"
-                f"{'Card number must contain digits only.' if lang == 'en' else 'Номер карты должен содержать только цифры.'}",
-                back_markup
-            )
-            return
-
-        conn = sqlite3.connect('king_deals.db')
-        cursor = conn.cursor()
-        cursor.execute("UPDATE users SET req_type = ?, req_value = ? WHERE user_id = ?",
-            ("Card" if lang == 'en' else f"Карта ({state['country']})", card_num, user_id))
-        conn.commit()
-        conn.close()
-
-        del user_states[user_id]
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton(tx['btn_create_deal'], callback_data="force_create"))
-        markup.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
-        send_screen(
-            message.chat.id, BANNER_BIND,
-            f"{E_CHECK} <b>{'Requisites successfully saved!' if lang == 'en' else 'Реквизиты успешно добавлены и сохранены!'}</b>",
-            markup
-        )
-
-    elif step == "input_ton":
-        ton_addr = message.text.strip()
-        if len(ton_addr) != 48 or not (ton_addr.startswith("UQ") or ton_addr.startswith("EQ")):
-            send_screen(
-                message.chat.id, BANNER_BIND,
-                f"{E_CROSS} <b>{'Wrong TON address format!' if lang == 'en' else 'Неверный формат TON-адреса!'}</b>\n"
-                f"{'Address must be 48 characters and start with UQ or EQ.' if lang == 'en' else 'Адрес должен содержать 48 символов и начинаться на UQ или EQ.'}",
-                back_markup
-            )
-            return
-
-        conn = sqlite3.connect('king_deals.db')
-        cursor = conn.cursor()
-        cursor.execute("UPDATE users SET req_type = ?, req_value = ? WHERE user_id = ?",
-            ("💎 TON wallet" if lang == 'en' else "💎 TON кошелек", ton_addr, user_id))
-        conn.commit()
-        conn.close()
-
-        del user_states[user_id]
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton(tx['btn_create_deal'], callback_data="force_create"))
-        markup.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
-        send_screen(
-            message.chat.id, BANNER_BIND,
-            f"{E_CHECK} <b>{'Requisites successfully saved!' if lang == 'en' else 'Реквизиты успешно добавлены и сохранены!'}</b>",
-            markup
-        )
-
-    elif step == "deal_title":
-        user_states[user_id]["title"] = message.text
-        user_states[user_id]["step"] = "deal_amount"
-        send_screen(
-            message.chat.id, BANNER_CREATE,
-            f"{E_MONEY} <b>{'Enter the deal amount:' if lang == 'en' else 'Укажите сумму сделки:'}</b>\n"
-            f"<i>{'(Numbers only, e.g.: 500)' if lang == 'en' else '(Введите только число, например: 500)'}</i>",
-            back_markup
-        )
-
-    elif step == "deal_amount":
-        try:
-            amount = float(message.text)
-            if amount <= 0:
-                raise ValueError
-        except ValueError:
-            send_screen(
-                message.chat.id, BANNER_CREATE,
-                f"{E_CROSS} <b>{'Error!' if lang == 'en' else 'Ошибка!'}</b> "
-                f"{'The amount must be a positive number. Try again:' if lang == 'en' else 'Сумма должна быть положительным числом. Попробуйте ещё раз:'}",
-                back_markup
-            )
-            return
-
-        user_states[user_id]["amount"] = amount
-        user_states[user_id]["step"] = "deal_currency"
-        markup = types.InlineKeyboardMarkup(row_width=2)
-        markup.add(
-            types.InlineKeyboardButton("🇺🇦 UAH", callback_data="cur_UAH"),
-            types.InlineKeyboardButton("🇷🇺 RUB", callback_data="cur_RUB"),
-            types.InlineKeyboardButton("🇰🇿 KZT", callback_data="cur_KZT"),
-            types.InlineKeyboardButton("🇧🇾 BYN", callback_data="cur_BYN"),
-            types.InlineKeyboardButton("🇺🇿 UZS", callback_data="cur_UZS"),
-            types.InlineKeyboardButton("💎 TON", callback_data="cur_TON")
-        )
-        send_screen(
-            message.chat.id, BANNER_CREATE,
-            f"{E_PLANE} <b>{'Choose the deal currency:' if lang == 'en' else 'Выберите валюту сделки:'}</b>",
-            markup
-        )
+    kb = types.InlineKeyboardMarkup(row_width=2)
+    kb.add(
+        types.InlineKeyboardButton(f"{E_TON} TON-кошелёк" if lang=='ru' else f"{E_TON} TON wallet", callback_data="req_ton"),
+        types.InlineKeyboardButton(f"🖥 {'Карта' if lang=='ru' else 'Card'}", callback_data="req_card"),
+    )
+    kb.add(
+        types.InlineKeyboardButton(f"{E_STARS} @username (Stars)", callback_data="req_stars"),
+        types.InlineKeyboardButton(f"💵 USDT (TRC20)", callback_data="req_usdt"),
+    )
+    kb.add(types.InlineKeyboardButton("₿ BTC", callback_data="req_btc"))
+    kb.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
+    send_screen(chat_id, BANNER_REQS, text, kb, old_msg_id)
 
 # === БАЛАНС ===
-def balance_menu(chat_id, user_id, old_msg_id=None):
-    lang = get_lang(user_id)
-    tx = TEXTS[lang]
+def screen_balance(chat_id, uid, old_msg_id=None):
+    lang = get_lang(uid)
+    tx   = TEXTS[lang]
     conn = sqlite3.connect('king_deals.db')
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT bal_uah, bal_rub, bal_kzt, bal_byn, bal_uzs, bal_ton FROM users WHERE user_id = ?",
-        (user_id,)
-    )
-    bal = cursor.fetchone() or (0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    c    = conn.cursor()
+    c.execute("SELECT bal_rub,bal_uah,bal_kzt,bal_byn,bal_ton,bal_stars,bal_usdt,bal_btc FROM users WHERE user_id=?", (uid,))
+    b = c.fetchone() or (0,)*8
     conn.close()
 
     if lang == 'en':
         text = (
-            f"{E_CARD} <b>Personal Account</b>\n\n"
-            f"{E_USER} Your Telegram ID: <code>{user_id}</code>\n\n"
-            f"{E_MONEY} <b>Your current King Deals balance:</b>\n"
-            f"🇺🇦 UAH: {bal[0]} UAH\n"
-            f"🇷🇺 RUB: {bal[1]} RUB\n"
-            f"🇰🇿 KZT: {bal[2]} KZT\n"
-            f"🇧🇾 BYN: {bal[3]} BYN\n"
-            f"🇺🇿 UZS: {bal[4]} UZS\n"
-            f"💎 TON: {bal[5]} TON\n\n"
-            f"👇 Choose an action:"
+            f"{E_CARD} <b>Personal Account</b>\n"
+            f"{E_USER} Telegram ID: <code>{uid}</code>\n\n"
+            f"<blockquote>{E_MONEY} Balance:\n"
+            f"🇷🇺 RUB: {b[0]}\n🇺🇦 UAH: {b[1]}\n🇰🇿 KZT: {b[2]}\n🇧🇾 BYN: {b[3]}\n"
+            f"{E_TON} TON: {b[4]}\n{E_STARS} STARS: {b[5]}\n{E_USDT} USDT: {b[6]}\n{E_BTC} BTC: {b[7]}</blockquote>"
         )
     else:
         text = (
-            f"{E_CARD} <b>Личный кабинет</b>\n\n"
-            f"{E_USER} Ваш Telegram ID: <code>{user_id}</code>\n\n"
-            f"{E_MONEY} <b>Ваш текущий баланс King Deals:</b>\n"
-            f"🇺🇦 UAH: {bal[0]} грн\n"
-            f"🇷🇺 RUB: {bal[1]} руб\n"
-            f"🇰🇿 KZT: {bal[2]} ₸\n"
-            f"🇧🇾 BYN: {bal[3]} BYN\n"
-            f"🇺🇿 UZS: {bal[4]} сум\n"
-            f"💎 TON: {bal[5]} TON\n\n"
-            f"👇 Выберите действие с балансом:"
+            f"{E_CARD} <b>Личный кабинет</b>\n"
+            f"{E_USER} Telegram ID: <code>{uid}</code>\n\n"
+            f"<blockquote>{E_MONEY} Баланс:\n"
+            f"🇷🇺 RUB: {b[0]}\n🇺🇦 UAH: {b[1]}\n🇰🇿 KZT: {b[2]}\n🇧🇾 BYN: {b[3]}\n"
+            f"{E_TON} TON: {b[4]}\n{E_STARS} STARS: {b[5]}\n{E_USDT} USDT: {b[6]}\n{E_BTC} BTC: {b[7]}</blockquote>"
         )
-    markup = types.InlineKeyboardMarkup(row_width=2)
-    markup.add(
-        types.InlineKeyboardButton(tx['btn_top_up'],   url=f"https://t.me/{SUPPORT_USER}"),
-        types.InlineKeyboardButton(tx['btn_withdraw'], url=f"https://t.me/{SUPPORT_USER}")
+    kb = types.InlineKeyboardMarkup(row_width=2)
+    kb.add(
+        types.InlineKeyboardButton(tx['btn_top_up'],  url=f"https://t.me/{SUPPORT_USER}"),
+        types.InlineKeyboardButton(tx['btn_withdraw'], url=f"https://t.me/{SUPPORT_USER}"),
     )
-    markup.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
-    send_screen(chat_id, BANNER_BAL, text, markup, old_msg_id)
+    kb.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
+    send_screen(chat_id, BANNER_BAL, text, kb, old_msg_id)
 
 # === РЕФЕРАЛЫ ===
-def referrals_menu(chat_id, user_id, old_msg_id=None):
-    lang = get_lang(user_id)
-    tx = TEXTS[lang]
-    bot_username = bot.get_me().username
-    ref_url = f"https://t.me/{bot_username}?start=ref_{user_id}"
-
+def screen_ref(chat_id, uid, old_msg_id=None):
+    lang = get_lang(uid)
+    tx   = TEXTS[lang]
+    bot_un = bot.get_me().username
+    ref_url = f"https://t.me/{bot_un}?start=ref_{uid}"
     conn = sqlite3.connect('king_deals.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(user_id) FROM users WHERE referrer_id = ?", (user_id,))
-    ref_count = cursor.fetchone()[0]
+    c    = conn.cursor()
+    c.execute("SELECT COUNT(*) FROM users WHERE referrer_id=?", (uid,))
+    cnt = c.fetchone()[0]
+    c.execute("SELECT ref_earned FROM users WHERE user_id=?", (uid,))
+    earned_row = c.fetchone()
+    earned = earned_row[0] if earned_row else 0.0
     conn.close()
 
     if lang == 'en':
         text = (
-            f"{E_USER} <b>King Deals Referral Program</b>\n\n"
-            f"Invite friends and earn <b>50% of the commission</b> from each of their successful deals!\n\n"
-            f"{E_DEV} Your referrals: <b>{ref_count}</b>\n\n"
-            f"{E_LINK} Your referral link:\n<code>{ref_url}</code>"
+            f"{E_LINK} <b>Referral Program</b>\n\n"
+            f"<blockquote>{E_LINK} Your link:\n<code>{ref_url}</code>\n"
+            f"{E_PEOPLE} Referrals: <b>{cnt}</b>\n"
+            f"{E_MONEY} Earned: <b>{earned} TON</b></blockquote>\n\n"
+            f"{E_USDT} Bonus: <b>50%</b> of commission from each referral deal!"
         )
     else:
         text = (
-            f"{E_USER} <b>Реферальная программа King Deals</b>\n\n"
-            f"Приглашайте друзей и получайте <b>50% от комиссии</b> с каждой их успешной сделки!\n\n"
-            f"{E_DEV} Ваших рефералов: <b>{ref_count}</b>\n\n"
-            f"{E_LINK} Ваша реферальная ссылка:\n<code>{ref_url}</code>"
+            f"{E_LINK} <b>Реферальная программа</b>\n\n"
+            f"<blockquote>{E_LINK} Ваша ссылка:\n<code>{ref_url}</code>\n"
+            f"{E_PEOPLE} Рефералов: <b>{cnt}</b>\n"
+            f"{E_MONEY} Заработано: <b>{earned} TON</b></blockquote>\n\n"
+            f"{E_USDT} Бонус: <b>50%</b> от комиссии с каждой сделки реферала!"
         )
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
-    send_screen(chat_id, BANNER_REF, text, markup, old_msg_id)
+    kb = types.InlineKeyboardMarkup()
+    kb.add(types.InlineKeyboardButton(f"{E_LINK} Скопировать реф. ссылку" if lang=='ru' else f"{E_LINK} Copy ref link", callback_data="ref_copy"))
+    kb.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
+    send_screen(chat_id, BANNER_REF, text, kb, old_msg_id)
 
 # === МОИ СДЕЛКИ ===
-def my_deals(chat_id, user_id, old_msg_id=None):
-    lang = get_lang(user_id)
-    tx = TEXTS[lang]
+def screen_deals(chat_id, uid, old_msg_id=None):
+    lang = get_lang(uid)
+    tx   = TEXTS[lang]
     conn = sqlite3.connect('king_deals.db')
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT deal_id, title, amount, currency, status FROM deals WHERE seller_id = ? OR buyer_id = ? ORDER BY rowid DESC LIMIT 10",
-        (user_id, user_id)
+    c    = conn.cursor()
+    c.execute(
+        "SELECT deal_id,title,amount,currency,status FROM deals WHERE seller_id=? OR buyer_id=? ORDER BY rowid DESC LIMIT 10",
+        (uid, uid)
     )
-    deals = cursor.fetchall()
+    deals = c.fetchall()
+    conn.close()
+    kb = types.InlineKeyboardMarkup()
+    kb.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
+    if not deals:
+        text = f"{E_BOX} <b>{'No deals yet.' if lang=='en' else 'Сделок пока нет.'}</b>"
+    else:
+        title_line = "📋 <b>Your deals (last 10):</b>\n\n" if lang=='en' else "📋 <b>Ваши сделки (последние 10):</b>\n\n"
+        text = title_line
+        for d in deals:
+            did, dtitle, amt, cur, st = d
+            st_text = tx['deal_status'].get(st, st)
+            text += f"• <b>{html_module.escape(str(dtitle))}</b> — {amt} {html_module.escape(str(cur))}\n  ID: <code>{did}</code> | {st_text}\n\n"
+    send_screen(chat_id, BANNER_DEALS, text, kb, old_msg_id)
+
+# === ЯЗЫК ===
+def screen_lang(chat_id, uid, old_msg_id=None):
+    lang = get_lang(uid)
+    tx   = TEXTS[lang]
+    text = f"{E_GLOBE} <b>Choose a language / Выберите язык:</b>"
+    kb = types.InlineKeyboardMarkup(row_width=2)
+    kb.add(
+        types.InlineKeyboardButton("🇷🇺 Русский", callback_data="set_lang_ru"),
+        types.InlineKeyboardButton("🇺🇸 English", callback_data="set_lang_en"),
+    )
+    kb.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
+    send_screen(chat_id, BANNER_MAIN, text, kb, old_msg_id)
+
+# === СОЗДАТЬ СДЕЛКУ — ВЫБОР РОЛИ ===
+def screen_create_role(chat_id, uid, old_msg_id=None):
+    lang = get_lang(uid)
+    tx   = TEXTS[lang]
+    if lang == 'en':
+        text = (
+            f"{E_BAG} <b>New Deal</b>\n\n"
+            f"<blockquote>{E_CLOUD} What is your role?</blockquote>\n"
+            f"{E_CROWN} <b>Seller</b> — you are selling an item/service...\n"
+            f"{E_CART} <b>Buyer</b> — you are paying..."
+        )
+        btn_sell = f"{E_CROWN} I'm the Seller"
+        btn_buy  = f"{E_CART} I'm the Buyer"
+    else:
+        text = (
+            f"{E_BAG} <b>Новая сделка</b>\n\n"
+            f"<blockquote>{E_CLOUD} Кем вы выступаете?</blockquote>\n"
+            f"{E_CROWN} <b>Продавец</b> — вы продаёте товар/услугу...\n"
+            f"{E_CART} <b>Покупатель</b> — вы платите..."
+        )
+        btn_sell = f"🔥 Я продавец"
+        btn_buy  = f"{E_CART} Я покупатель"
+    kb = types.InlineKeyboardMarkup(row_width=2)
+    kb.add(
+        types.InlineKeyboardButton(btn_sell, callback_data="role_seller"),
+        types.InlineKeyboardButton(btn_buy,  callback_data="role_buyer"),
+    )
+    kb.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
+    send_screen(chat_id, BANNER_CREATE, text, kb, old_msg_id)
+
+# === СПОСОБ ОПЛАТЫ ===
+def screen_pay_method(chat_id, uid, old_msg_id=None):
+    lang = get_lang(uid)
+    tx   = TEXTS[lang]
+    if lang == 'en':
+        text = (
+            f"{E_1} <b>Payment method:</b>\n\n"
+            f"<blockquote>{E_CLOUD} How will the buyer pay?</blockquote>"
+        )
+    else:
+        text = (
+            f"{E_1} <b>Способ получения оплаты:</b>\n\n"
+            f"<blockquote>{E_CLOUD} Как покупатель переведёт?</blockquote>"
+        )
+    kb = types.InlineKeyboardMarkup(row_width=2)
+    kb.add(
+        types.InlineKeyboardButton("🖥 Карта" if lang=='ru' else "🖥 Card",  callback_data="pm_card"),
+        types.InlineKeyboardButton(f"{E_STARS} Stars",                       callback_data="pm_stars"),
+    )
+    kb.add(types.InlineKeyboardButton(f"💰 {'Крипта' if lang=='ru' else 'Crypto'}", callback_data="pm_crypto"))
+    kb.add(
+        types.InlineKeyboardButton(tx['btn_back_step'], callback_data="menu_create"),
+        types.InlineKeyboardButton(tx['btn_back'],      callback_data="menu_main"),
+    )
+    send_screen(chat_id, BANNER_CREATE, text, kb, old_msg_id)
+
+# === ВЫБОР КРИПТЫ ===
+def screen_crypto_choose(chat_id, uid, old_msg_id=None):
+    lang = get_lang(uid)
+    tx   = TEXTS[lang]
+    text = (
+        f"{E_1} <b>{'Choose cryptocurrency:' if lang=='en' else 'Выберите криптовалюту:'}</b>\n\n"
+        f"<blockquote>{E_CLOUD} {'Which cryptocurrency?' if lang=='en' else 'Какую криптовалюту принимаете?'}</blockquote>"
+    )
+    kb = types.InlineKeyboardMarkup(row_width=3)
+    kb.add(
+        types.InlineKeyboardButton(f"{E_TON} TON",   callback_data="cur_TON"),
+        types.InlineKeyboardButton(f"{E_USDT} USDT", callback_data="cur_USDT"),
+        types.InlineKeyboardButton(f"₿ BTC",          callback_data="cur_BTC"),
+    )
+    kb.add(
+        types.InlineKeyboardButton(tx['btn_back_step'], callback_data="pm_back"),
+        types.InlineKeyboardButton(tx['btn_back'],      callback_data="menu_main"),
+    )
+    send_screen(chat_id, BANNER_CREATE, text, kb, old_msg_id)
+
+# === ВЫБОР ВАЛЮТЫ КАРТЫ ===
+def screen_card_currency(chat_id, uid, old_msg_id=None):
+    lang = get_lang(uid)
+    tx   = TEXTS[lang]
+    text = f"{E_BANK} <b>{'Choose card currency:' if lang=='en' else 'Выберите валюту карты:'}</b>"
+    kb = types.InlineKeyboardMarkup(row_width=2)
+    kb.add(
+        types.InlineKeyboardButton("🇷🇺 RUB", callback_data="cur_RUB"),
+        types.InlineKeyboardButton("🇺🇦 UAH", callback_data="cur_UAH"),
+        types.InlineKeyboardButton("🇰🇿 KZT", callback_data="cur_KZT"),
+        types.InlineKeyboardButton("🇧🇾 BYN", callback_data="cur_BYN"),
+    )
+    kb.add(
+        types.InlineKeyboardButton(tx['btn_back_step'], callback_data="pm_back"),
+        types.InlineKeyboardButton(tx['btn_back'],      callback_data="menu_main"),
+    )
+    send_screen(chat_id, BANNER_CREATE, text, kb, old_msg_id)
+
+# === ВВОД НАЗВИ/СУМИ ===
+def ask_deal_title(chat_id, uid, old_msg_id=None):
+    lang = get_lang(uid)
+    tx   = TEXTS[lang]
+    text = (
+        f"{E_BOX} <b>{'Enter item/service name:' if lang=='en' else 'Введите название товара/услуги:'}</b>\n"
+        f"<i>{'Example: NFT, Steam account, etc.' if lang=='en' else 'Пример: NFT, аккаунт Steam, и т.д.'}</i>"
+    )
+    kb = types.InlineKeyboardMarkup()
+    kb.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
+    send_screen(chat_id, BANNER_CREATE, text, kb, old_msg_id)
+    user_states[uid] = user_states.get(uid, {})
+    user_states[uid]['step'] = 'deal_title'
+
+def ask_deal_amount(chat_id, uid):
+    lang = get_lang(uid)
+    tx   = TEXTS[lang]
+    kb   = types.InlineKeyboardMarkup()
+    kb.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
+    send_screen(
+        chat_id, BANNER_CREATE,
+        f"{E_MONEY} <b>{'Enter the amount:' if lang=='en' else 'Укажите сумму:'}</b>\n"
+        f"<i>{'Numbers only, e.g.: 500' if lang=='en' else 'Только число, например: 500'}</i>",
+        kb
+    )
+
+# === ПОКРОКОВІ КРОКИ ===
+@bot.message_handler(func=lambda m: user_states.get(m.from_user.id) is not None)
+def handle_steps(message):
+    uid   = message.from_user.id
+    state = user_states[uid]
+    step  = state.get('step')
+    lang  = get_lang(uid)
+    tx    = TEXTS[lang]
+
+    kb_back = types.InlineKeyboardMarkup()
+    kb_back.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
+
+    # --- реквизиты ---
+    if step == 'req_ton':
+        addr = message.text.strip()
+        if len(addr) != 48 or addr[:2] not in ('UQ','EQ'):
+            send_screen(message.chat.id, BANNER_BIND,
+                f"{E_CROSS} <b>Неверный формат!</b>\n48 символов, начинается UQ или EQ.", kb_back)
+            return
+        _save_req(uid, 'req_ton', addr)
+        del user_states[uid]
+        send_screen(message.chat.id, BANNER_BIND, f"{E_DONE} <b>TON-кошелёк сохранён!</b>", kb_back)
+
+    elif step == 'req_card':
+        num = message.text.replace(' ','')
+        if not num.isdigit() or len(num) < 13:
+            send_screen(message.chat.id, BANNER_BIND,
+                f"{E_CROSS} <b>Неверный номер карты!</b>\nТолько цифры.", kb_back)
+            return
+        _save_req(uid, 'req_card', num)
+        del user_states[uid]
+        send_screen(message.chat.id, BANNER_BIND, f"{E_DONE} <b>Карта сохранена!</b>", kb_back)
+
+    elif step == 'req_stars':
+        un = message.text.strip().lstrip('@')
+        _save_req(uid, 'req_stars', f"@{un}")
+        del user_states[uid]
+        send_screen(message.chat.id, BANNER_BIND, f"{E_DONE} <b>Stars username сохранён!</b>", kb_back)
+
+    elif step == 'req_usdt':
+        addr = message.text.strip()
+        if not addr.startswith('T') or len(addr) < 30:
+            send_screen(message.chat.id, BANNER_BIND,
+                f"{E_CROSS} <b>Неверный USDT TRC20 адрес!</b>\nНачинается на T, ~34 символа.", kb_back)
+            return
+        _save_req(uid, 'req_usdt', addr)
+        del user_states[uid]
+        send_screen(message.chat.id, BANNER_BIND, f"{E_DONE} <b>USDT (TRC20) сохранён!</b>", kb_back)
+
+    elif step == 'req_btc':
+        addr = message.text.strip()
+        if len(addr) < 25:
+            send_screen(message.chat.id, BANNER_BIND,
+                f"{E_CROSS} <b>Неверный BTC адрес!</b>", kb_back)
+            return
+        _save_req(uid, 'req_btc', addr)
+        del user_states[uid]
+        send_screen(message.chat.id, BANNER_BIND, f"{E_DONE} <b>BTC-адрес сохранён!</b>", kb_back)
+
+    # --- сделка ---
+    elif step == 'deal_title':
+        user_states[uid]['title'] = message.text
+        user_states[uid]['step']  = 'deal_amount'
+        ask_deal_amount(message.chat.id, uid)
+
+    elif step == 'deal_amount':
+        try:
+            amt = float(message.text.replace(',','.'))
+            if amt <= 0: raise ValueError
+        except ValueError:
+            send_screen(message.chat.id, BANNER_CREATE,
+                f"{E_CROSS} <b>Введите положительное число!</b>", kb_back)
+            return
+        user_states[uid]['amount'] = amt
+        currency = user_states[uid].get('currency')
+        # якщо валюта вже вибрана (крипта/stars) — одразу створюємо
+        if currency:
+            _finish_deal(message.chat.id, uid)
+        else:
+            # карта — просимо вибрати валюту
+            screen_card_currency(message.chat.id, uid)
+
+def _save_req(uid, col, val):
+    conn = sqlite3.connect('king_deals.db')
+    conn.execute(f"UPDATE users SET {col}=? WHERE user_id=?", (val, uid))
+    conn.commit()
     conn.close()
 
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
+def _finish_deal(chat_id, uid):
+    state    = user_states.pop(uid, {})
+    lang     = get_lang(uid)
+    tx       = TEXTS[lang]
+    title    = state.get('title','—')
+    amount   = state.get('amount', 0)
+    currency = state.get('currency','?')
+    role     = state.get('role','seller')
 
-    if not deals:
-        send_screen(chat_id, BANNER_DEALS, tx['deals_empty'], markup, old_msg_id)
-        return
+    deal_id = ''.join(random.choices(string.ascii_letters+string.digits, k=8))
+    bot_un  = bot.get_me().username
+    deal_url = f"https://t.me/{bot_un}?start=deal_{deal_id}"
 
-    text = tx['deals_title']
-    for d in deals:
-        deal_id, title, amount, currency, status = d
-        safe_title    = html_module.escape(str(title))
-        safe_currency = html_module.escape(str(currency))
-        status_text   = tx['deal_status'].get(status, status)
-        text += f"• <b>{safe_title}</b> — {amount} {safe_currency}\n  ID: <code>{deal_id}</code> | {status_text}\n\n"
+    conn = sqlite3.connect('king_deals.db')
+    conn.execute(
+        "INSERT INTO deals (deal_id,seller_id,title,amount,currency,role) VALUES (?,?,?,?,?,?)",
+        (deal_id, uid, title, amount, currency, role)
+    )
+    conn.commit()
+    conn.close()
 
-    send_screen(chat_id, BANNER_DEALS, text, markup, old_msg_id)
+    notify_owner(
+        f"{E_HAND} <b>Новая сделка создана!</b>\n"
+        f"ID: <code>{deal_id}</code>\n"
+        f"Продавец: <code>{uid}</code>\n"
+        f"Товар: {html_module.escape(title)}\n"
+        f"Сумма: {amount} {currency}"
+    )
 
-# === ОБРАБОТКА CALLBACK КНОПОК ===
-@bot.callback_query_handler(func=lambda call: True)
-def handle_callbacks(call):
-    user_id = call.from_user.id
-    mid = call.message.message_id
-    cid = call.message.chat.id
-    lang = get_lang(user_id)
-    tx = TEXTS[lang]
-
-    bot.answer_callback_query(call.id)
-
-    if call.data == "lang_toggle":
-        new_lang = 'en' if lang == 'ru' else 'ru'
-        set_lang(user_id, new_lang)
-        send_screen(cid, BANNER_MAIN, build_welcome_text(new_lang), get_welcome_inline(new_lang), mid)
-
-    elif call.data == "menu_main":
-        send_screen(cid, BANNER_MAIN, build_welcome_text(lang), get_welcome_inline(lang), mid)
-
-    elif call.data == "menu_create":
-        create_deal_start(cid, user_id, mid)
-
-    elif call.data == "menu_deals":
-        my_deals(cid, user_id, mid)
-
-    elif call.data == "menu_balance":
-        balance_menu(cid, user_id, mid)
-
-    elif call.data == "menu_reqs":
-        my_requisites(cid, user_id, mid)
-
-    elif call.data == "menu_ref":
-        referrals_menu(cid, user_id, mid)
-
-    elif call.data == "bind_start":
-        markup = types.InlineKeyboardMarkup()
-        if lang == 'en':
-            markup.add(types.InlineKeyboardButton("💳 Bank Card", callback_data="bind_card_sng"))
-            markup.add(types.InlineKeyboardButton("💎 TON Address", callback_data="bind_ton"))
-            txt = "Please choose a method to link your requisites:"
-        else:
-            markup.add(types.InlineKeyboardButton("💳 Банковская карта", callback_data="bind_card_sng"))
-            markup.add(types.InlineKeyboardButton("💎 TON Адрес", callback_data="bind_ton"))
-            txt = "Пожалуйста, выберите способ для привязки реквизитов:"
-        markup.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
-        send_screen(cid, BANNER_BIND, txt, markup, mid)
-
-    elif call.data == "bind_card_sng":
-        markup = types.InlineKeyboardMarkup(row_width=2)
-        markup.add(
-            types.InlineKeyboardButton("🇺🇦 Ukraine"    if lang == 'en' else "🇺🇦 Украина",    callback_data="cc_Ukraine"    if lang == 'en' else "cc_Украина"),
-            types.InlineKeyboardButton("🇷🇺 Russia"     if lang == 'en' else "🇷🇺 Россия",     callback_data="cc_Russia"     if lang == 'en' else "cc_Россия"),
-            types.InlineKeyboardButton("🇰🇿 Kazakhstan" if lang == 'en' else "🇰🇿 Казахстан",  callback_data="cc_Kazakhstan" if lang == 'en' else "cc_Казахстан"),
-            types.InlineKeyboardButton("🇧🇾 Belarus"    if lang == 'en' else "🇧🇾 Беларусь",   callback_data="cc_Belarus"    if lang == 'en' else "cc_Беларусь"),
-            types.InlineKeyboardButton("🇺🇿 Uzbekistan" if lang == 'en' else "🇺🇿 Узбекистан", callback_data="cc_Uzbekistan" if lang == 'en' else "cc_Узбекистан"),
+    if lang == 'en':
+        text = (
+            f"{E_BOX} <b>Deal created!</b>\n\n"
+            f"📝 Item: {html_module.escape(title)}\n"
+            f"💵 Amount: {amount} {currency}\n\n"
+            f"{E_LINK} Buyer link:\n<code>{deal_url}</code>\n\n"
+            f"Send this link to the buyer."
         )
-        markup.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
-        send_screen(cid, BANNER_BIND, tx['bind_country'], markup, mid)
-
-    elif call.data.startswith("cc_"):
-        country = call.data.split("_")[1]
-        user_states[user_id] = {"step": "input_card", "country": country}
-        try:
-            bot.delete_message(cid, mid)
-        except Exception:
-            pass
-        send_screen(
-            cid, BANNER_BIND,
-            tx['bind_card_send'].format(country=country),
-            types.InlineKeyboardMarkup()
+    else:
+        text = (
+            f"{E_BOX} <b>Сделка создана!</b>\n\n"
+            f"📝 Товар: {html_module.escape(title)}\n"
+            f"💵 Сумма: {amount} {currency}\n\n"
+            f"{E_LINK} Ссылка для покупателя:\n<code>{deal_url}</code>\n\n"
+            f"Перешлите эту ссылку покупателю."
         )
-
-    elif call.data == "bind_ton":
-        user_states[user_id] = {"step": "input_ton"}
-        try:
-            bot.delete_message(cid, mid)
-        except Exception:
-            pass
-        send_screen(cid, BANNER_BIND, tx['bind_ton_send'], types.InlineKeyboardMarkup())
-
-    elif call.data == "force_create":
-        create_deal_start(cid, user_id, mid)
-
-    elif call.data.startswith("cur_"):
-        currency = call.data.split("_")[1]
-        if user_id in user_states and user_states[user_id].get("step") == "deal_currency":
-            title  = user_states[user_id]["title"]
-            amount = user_states[user_id]["amount"]
-            del user_states[user_id]
-
-            deal_id = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-
-            conn = sqlite3.connect('king_deals.db')
-            cursor = conn.cursor()
-            cursor.execute(
-                "INSERT INTO deals (deal_id, seller_id, title, amount, currency) VALUES (?, ?, ?, ?, ?)",
-                (deal_id, user_id, title, amount, currency)
-            )
-            conn.commit()
-            conn.close()
-
-            bot_username = bot.get_me().username
-            deal_url = f"https://t.me/{bot_username}?start=deal_{deal_id}"
-
-            if lang == 'en':
-                seller_text = (
-                    f"{E_BOX} <b>Deal successfully created!</b>\n\n"
-                    f"📝 Item: {title}\n"
-                    f"💵 Amount: {amount} {currency}\n\n"
-                    f"{E_LINK} Buyer link:\n<code>{deal_url}</code>\n\n"
-                    f"Send this link to the buyer."
-                )
-            else:
-                seller_text = (
-                    f"{E_BOX} <b>Сделка успешно создана!</b>\n\n"
-                    f"📝 Товар: {title}\n"
-                    f"💵 Сумма: {amount} {currency}\n\n"
-                    f"{E_LINK} Ссылка для покупателя:\n<code>{deal_url}</code>\n\n"
-                    f"Перешлите эту ссылку покупателю."
-                )
-            markup = types.InlineKeyboardMarkup()
-            markup.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
-            send_screen(cid, BANNER_CREATE, seller_text, markup, mid)
-
-    elif call.data.startswith("pay_"):
-        deal_id = call.data.split("_")[1]
-        conn = sqlite3.connect('king_deals.db')
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT seller_id, title, amount, currency, status FROM deals WHERE deal_id = ?",
-            (deal_id,)
-        )
-        deal = cursor.fetchone()
-
-        if not deal or deal[4] != 'created':
-            bot.answer_callback_query(call.id, "Сделка недействительна или уже оплачена.", show_alert=True)
-            conn.close()
-            return
-
-        seller_id, title, amount, currency, status = deal
-        bal_col = f"bal_{currency.lower()}"
-
-        cursor.execute(f"SELECT {bal_col} FROM users WHERE user_id = ?", (user_id,))
-        row = cursor.fetchone()
-        buyer_bal = row[0] if row else 0.0
-
-        if buyer_bal < amount:
-            bot.answer_callback_query(
-                call.id,
-                f"❌ Недостаточно средств! Стоимость: {amount} {currency}, ваш баланс: {buyer_bal} {currency}.",
-                show_alert=True
-            )
-            conn.close()
-            return
-
-        cursor.execute(f"UPDATE users SET {bal_col} = {bal_col} - ? WHERE user_id = ?", (amount, user_id))
-        cursor.execute("UPDATE deals SET buyer_id = ?, status = 'paid' WHERE deal_id = ?", (user_id, deal_id))
-        conn.commit()
-        conn.close()
-
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton("🎉 Товар получил, отпустить средства", callback_data=f"release_{deal_id}"))
-        buyer_text = (
-            f"{E_CHECK} <b>Вы успешно оплатили сделку!</b>\n\n"
-            f"🔒 Средства заморожены гарантом King Deals.\n"
-            f"{E_BOX} Для передачи товара: @{SUPPORT_USER}\n\n"
-            f"👇 Нажмите кнопку ТОЛЬКО после получения товара:"
-        )
-        send_screen(cid, BANNER_CREATE, buyer_text, markup, mid)
-
-        seller_text = (
-            f"{E_TIME} <b>Ваша сделка оплачена!</b>\n\n"
-            f"Покупатель внёс оплату за «{title}».\n"
-            f"🔒 Передайте товар через менеджера @{SUPPORT_USER}."
-        )
-        with open(BANNER_CREATE, "rb") as photo:
-            bot.send_photo(seller_id, photo, caption=seller_text, parse_mode="HTML")
-
-    elif call.data.startswith("cancel_"):
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
-        send_screen(cid, BANNER_MAIN, f"{E_CROSS} Вы отказались от сделки.", markup, mid)
-
-    elif call.data.startswith("release_"):
-        deal_id = call.data.split("_")[1]
-        conn = sqlite3.connect('king_deals.db')
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT seller_id, buyer_id, title, amount, currency, status FROM deals WHERE deal_id = ?",
-            (deal_id,)
-        )
-        deal = cursor.fetchone()
-
-        if not deal or deal[5] != 'paid':
-            bot.answer_callback_query(call.id, "Ошибка закрытия сделки.", show_alert=True)
-            conn.close()
-            return
-
-        seller_id, buyer_id, title, amount, currency, status = deal
-        bal_col = f"bal_{currency.lower()}"
-
-        cursor.execute(f"UPDATE users SET {bal_col} = {bal_col} + ? WHERE user_id = ?", (amount, seller_id))
-        cursor.execute("UPDATE deals SET status = 'completed' WHERE deal_id = ?", (deal_id,))
-
-        cursor.execute("SELECT referrer_id FROM users WHERE user_id = ?", (seller_id,))
-        ref = cursor.fetchone()
-        if ref and ref[0]:
-            ref_bonus = amount * 0.025
-            cursor.execute(f"UPDATE users SET {bal_col} = {bal_col} + ? WHERE user_id = ?", (ref_bonus, ref[0]))
-            try:
-                with open(BANNER_REF, "rb") as photo:
-                    bot.send_photo(
-                        ref[0], photo,
-                        caption=f"{E_COIN} Реферальный бонус! Вам зачислено {ref_bonus:.2f} {currency}.",
-                        parse_mode="HTML"
-                    )
-            except Exception:
-                pass
-
-        conn.commit()
-        conn.close()
-
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
-        send_screen(
-            cid, BANNER_MAIN,
-            f"{E_CHECK} <b>Сделка успешно завершена!</b>\nСпасибо, что используете King Deals! {E_HAND}",
-            markup, mid
-        )
-        with open(BANNER_BAL, "rb") as photo:
-            bot.send_photo(
-                seller_id, photo,
-                caption=f"{E_MONEY} <b>Сделка завершена!</b>\n💰 На ваш баланс зачислено {amount} {currency}.",
-                parse_mode="HTML"
-            )
+    kb = types.InlineKeyboardMarkup()
+    kb.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
+    send_screen(chat_id, BANNER_CREATE, text, kb)
 
 # === КАРТОЧКА СДЕЛКИ ДЛЯ ПОКУПАТЕЛЯ ===
 def show_deal_card(message, deal_id):
     conn = sqlite3.connect('king_deals.db')
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT seller_id, title, amount, currency, status FROM deals WHERE deal_id = ?",
-        (deal_id,)
-    )
-    deal = cursor.fetchone()
+    c    = conn.cursor()
+    c.execute("SELECT seller_id,title,amount,currency,status FROM deals WHERE deal_id=?", (deal_id,))
+    deal = c.fetchone()
     conn.close()
 
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(TEXTS['ru']['btn_back'], callback_data="menu_main"))
+    kb = types.InlineKeyboardMarkup()
+    kb.add(types.InlineKeyboardButton(TEXTS['ru']['btn_back'], callback_data="menu_main"))
 
     if not deal:
-        send_screen(message.chat.id, BANNER_MAIN, f"{E_CROSS} Сделка не найдена.", markup)
+        send_screen(message.chat.id, BANNER_MAIN, f"{E_CROSS} Сделка не найдена.", kb)
         return
-
     seller_id, title, amount, currency, status = deal
-
     if status != 'created':
-        send_screen(message.chat.id, BANNER_MAIN, f"{E_CROSS} Данная сделка уже недействительна.", markup)
+        send_screen(message.chat.id, BANNER_MAIN, f"{E_CROSS} Сделка уже недействительна.", kb)
         return
-
     if seller_id == message.from_user.id:
-        send_screen(message.chat.id, BANNER_MAIN, f"{E_CROSS} Вы не можете открыть сделку с самим собой.", markup)
+        send_screen(message.chat.id, BANNER_MAIN, f"{E_CROSS} Нельзя открыть свою сделку.", kb)
         return
-
-    markup2 = types.InlineKeyboardMarkup()
-    markup2.add(
+    kb2 = types.InlineKeyboardMarkup()
+    kb2.add(
         types.InlineKeyboardButton("💳 Оплатить с баланса", callback_data=f"pay_{deal_id}"),
-        types.InlineKeyboardButton("❌ Отказаться",          callback_data=f"cancel_{deal_id}")
+        types.InlineKeyboardButton(f"{E_CANCEL} Отказаться",  callback_data=f"cancel_{deal_id}"),
     )
-    card_text = (
+    send_screen(
+        message.chat.id, BANNER_CREATE,
         f"{E_HAND} <b>Вам предложена сделка</b>\n\n"
-        f"{E_BOX} Товар/Услуга: {title}\n"
-        f"{E_MONEY} Стоимость: {amount} {currency}"
+        f"{E_BOX} Товар: {html_module.escape(str(title))}\n"
+        f"{E_MONEY} Сумма: {amount} {currency}",
+        kb2
     )
-    send_screen(message.chat.id, BANNER_CREATE, card_text, markup2)
 
-# === /add user_id amount currency ===
+# === CALLBACK ОБРОБНИК ===
+@bot.callback_query_handler(func=lambda call: True)
+def handle_cb(call):
+    uid  = call.from_user.id
+    mid  = call.message.message_id
+    cid  = call.message.chat.id
+    lang = get_lang(uid)
+    tx   = TEXTS[lang]
+    bot.answer_callback_query(call.id)
+    d    = call.data
+
+    if d == "menu_main":
+        send_screen(cid, BANNER_MAIN, welcome_text(lang), main_markup(lang), mid)
+    elif d == "menu_reqs":
+        screen_reqs(cid, uid, mid)
+    elif d == "menu_balance":
+        screen_balance(cid, uid, mid)
+    elif d == "menu_deals":
+        screen_deals(cid, uid, mid)
+    elif d == "menu_ref":
+        screen_ref(cid, uid, mid)
+    elif d == "menu_lang":
+        screen_lang(cid, uid, mid)
+    elif d == "menu_create":
+        screen_create_role(cid, uid, mid)
+
+    # мова
+    elif d in ("set_lang_ru","set_lang_en"):
+        new_lang = d.split("_")[2]
+        set_lang(uid, new_lang)
+        send_screen(cid, BANNER_MAIN, welcome_text(new_lang), main_markup(new_lang), mid)
+
+    # реквізити
+    elif d == "req_ton":
+        user_states[uid] = {'step':'req_ton'}
+        try: bot.delete_message(cid, mid)
+        except: pass
+        kb = types.InlineKeyboardMarkup()
+        kb.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
+        send_screen(cid, BANNER_BIND,
+            f"{E_TON} <b>Введите TON-адрес кошелька:</b>\n"
+            f"<i>(48 символов, начинается UQ или EQ)</i>", kb)
+    elif d == "req_card":
+        user_states[uid] = {'step':'req_card'}
+        try: bot.delete_message(cid, mid)
+        except: pass
+        kb = types.InlineKeyboardMarkup()
+        kb.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
+        send_screen(cid, BANNER_BIND,
+            f"{E_CARD} <b>Введите номер банковской карты:</b>\n<i>(Только цифры)</i>", kb)
+    elif d == "req_stars":
+        user_states[uid] = {'step':'req_stars'}
+        try: bot.delete_message(cid, mid)
+        except: pass
+        kb = types.InlineKeyboardMarkup()
+        kb.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
+        send_screen(cid, BANNER_BIND,
+            f"{E_STARS} <b>Введите ваш @username для получения Stars:</b>", kb)
+    elif d == "req_usdt":
+        user_states[uid] = {'step':'req_usdt'}
+        try: bot.delete_message(cid, mid)
+        except: pass
+        kb = types.InlineKeyboardMarkup()
+        kb.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
+        send_screen(cid, BANNER_BIND,
+            f"{E_USDT} <b>Введите USDT TRC20 адрес:</b>\n<i>(Начинается на T)</i>", kb)
+    elif d == "req_btc":
+        user_states[uid] = {'step':'req_btc'}
+        try: bot.delete_message(cid, mid)
+        except: pass
+        kb = types.InlineKeyboardMarkup()
+        kb.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
+        send_screen(cid, BANNER_BIND,
+            f"{E_BTC} <b>Введите BTC-адрес кошелька:</b>", kb)
+
+    # роль у угоді
+    elif d == "role_seller":
+        user_states[uid] = {'role':'seller'}
+        screen_pay_method(cid, uid, mid)
+    elif d == "role_buyer":
+        kb = types.InlineKeyboardMarkup()
+        kb.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
+        send_screen(cid, BANNER_CREATE,
+            f"{E_CART} <b>{'Paste the deal link from the seller:' if lang=='en' else 'Вставьте ссылку на сделку от продавца:'}</b>",
+            kb, mid)
+
+    # спосіб оплати
+    elif d == "pm_card":
+        user_states[uid]['pay_method'] = 'card'
+        screen_card_currency(cid, uid, mid)
+    elif d == "pm_stars":
+        user_states[uid]['pay_method'] = 'stars'
+        user_states[uid]['currency']   = 'STARS'
+        ask_deal_title(cid, uid, mid)
+    elif d == "pm_crypto":
+        user_states[uid]['pay_method'] = 'crypto'
+        screen_crypto_choose(cid, uid, mid)
+    elif d == "pm_back":
+        screen_pay_method(cid, uid, mid)
+
+    # валюта/крипта
+    elif d.startswith("cur_"):
+        currency = d.split("_")[1]
+        if uid in user_states:
+            user_states[uid]['currency'] = currency
+            step = user_states[uid].get('step')
+            if step == 'deal_amount':
+                # юзер вже ввів суму, тепер вибрав валюту
+                _finish_deal(cid, uid)
+            else:
+                ask_deal_title(cid, uid, mid)
+        else:
+            send_screen(cid, BANNER_MAIN, welcome_text(lang), main_markup(lang), mid)
+
+    # реферальна кнопка копіювання
+    elif d == "ref_copy":
+        bot_un = bot.get_me().username
+        ref_url = f"https://t.me/{bot_un}?start=ref_{uid}"
+        bot.answer_callback_query(call.id, ref_url, show_alert=True)
+
+    # оплата угоди
+    elif d.startswith("pay_"):
+        deal_id = d.split("_")[1]
+        conn = sqlite3.connect('king_deals.db')
+        c    = conn.cursor()
+        c.execute("SELECT seller_id,title,amount,currency,status FROM deals WHERE deal_id=?", (deal_id,))
+        deal = c.fetchone()
+        if not deal or deal[4] != 'created':
+            bot.answer_callback_query(call.id, "Сделка недействительна.", show_alert=True)
+            conn.close()
+            return
+        seller_id, title, amount, currency, _ = deal
+        bal_col = f"bal_{currency.lower()}"
+        try:
+            c.execute(f"SELECT {bal_col} FROM users WHERE user_id=?", (uid,))
+        except Exception:
+            bot.answer_callback_query(call.id, "Ошибка валюты.", show_alert=True)
+            conn.close()
+            return
+        row = c.fetchone()
+        buyer_bal = row[0] if row else 0.0
+        if buyer_bal < amount:
+            bot.answer_callback_query(call.id,
+                f"Недостаточно средств! Нужно {amount} {currency}, у вас {buyer_bal}.", show_alert=True)
+            conn.close()
+            return
+        c.execute(f"UPDATE users SET {bal_col}={bal_col}-? WHERE user_id=?", (amount, uid))
+        c.execute("UPDATE deals SET buyer_id=?,status='paid' WHERE deal_id=?", (uid, deal_id))
+        conn.commit()
+        conn.close()
+
+        kb = types.InlineKeyboardMarkup()
+        kb.add(types.InlineKeyboardButton(f"{E_DONE} Товар получил, отпустить средства", callback_data=f"release_{deal_id}"))
+        send_screen(cid, BANNER_CREATE,
+            f"{E_CHECK} <b>Оплата прошла!</b>\n{E_LOCK} Средства заморожены гарантом.\n{E_BOX} Для получения: @{SUPPORT_USER}",
+            kb, mid)
+        with open(BANNER_CREATE,"rb") as f:
+            bot.send_photo(seller_id, f,
+                caption=f"{E_TIME} <b>Ваша сделка оплачена!</b>\nПередайте товар через @{SUPPORT_USER}.",
+                parse_mode="HTML")
+
+    elif d.startswith("cancel_"):
+        kb = types.InlineKeyboardMarkup()
+        kb.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
+        send_screen(cid, BANNER_MAIN, f"{E_CANCEL} Вы отказались от сделки.", kb, mid)
+
+    elif d.startswith("release_"):
+        deal_id = d.split("_")[1]
+        conn = sqlite3.connect('king_deals.db')
+        c    = conn.cursor()
+        c.execute("SELECT seller_id,buyer_id,title,amount,currency,status FROM deals WHERE deal_id=?", (deal_id,))
+        deal = c.fetchone()
+        if not deal or deal[5] != 'paid':
+            bot.answer_callback_query(call.id, "Ошибка.", show_alert=True)
+            conn.close()
+            return
+        seller_id, buyer_id, title, amount, currency, _ = deal
+        bal_col = f"bal_{currency.lower()}"
+        try:
+            c.execute(f"UPDATE users SET {bal_col}={bal_col}+? WHERE user_id=?", (amount, seller_id))
+        except Exception:
+            conn.close()
+            return
+        c.execute("UPDATE deals SET status='completed' WHERE deal_id=?", (deal_id,))
+        c.execute("SELECT referrer_id FROM users WHERE user_id=?", (seller_id,))
+        ref = c.fetchone()
+        if ref and ref[0]:
+            bonus = round(amount * 0.025, 8)
+            try:
+                c.execute(f"UPDATE users SET {bal_col}={bal_col}+?, ref_earned=ref_earned+? WHERE user_id=?",
+                    (bonus, bonus, ref[0]))
+                with open(BANNER_REF,"rb") as f:
+                    bot.send_photo(ref[0], f,
+                        caption=f"{E_COIN} Реферальный бонус: +{bonus} {currency}!", parse_mode="HTML")
+            except Exception:
+                pass
+        conn.commit()
+        conn.close()
+        kb = types.InlineKeyboardMarkup()
+        kb.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
+        send_screen(cid, BANNER_MAIN,
+            f"{E_DONE} <b>Сделка завершена!</b>\nСпасибо, что используете King Deals! {E_HAND}", kb, mid)
+        with open(BANNER_BAL,"rb") as f:
+            bot.send_photo(seller_id, f,
+                caption=f"{E_MONEY} <b>Сделка завершена!</b>\nВам зачислено {amount} {currency}.", parse_mode="HTML")
+
+# === /add (поповнення балансу) ===
 @bot.message_handler(commands=['add'])
-def admin_add_balance(message):
+def cmd_add(message):
     parts = message.text.split()
     if len(parts) != 4:
-        bot.send_message(message.chat.id, "Формат: /add user_id сума валюта")
+        bot.send_message(message.chat.id, "Формат: /add user_id сумма валюта")
         return
-
     try:
-        target_id = int(parts[1])
-        amount    = float(parts[2])
-        currency  = parts[3].lower()
+        tid    = int(parts[1])
+        amount = float(parts[2])
+        cur    = parts[3].lower()
     except ValueError:
-        bot.send_message(message.chat.id, "Невірний формат. Приклад: /add 123456789 500 uah")
+        bot.send_message(message.chat.id, "Неверный формат.")
         return
 
-    currency_map = {
-        'uah': 'uah', 'грн': 'uah', 'гривна': 'uah', 'гривня': 'uah',
-        'rub': 'rub', 'руб': 'rub', 'рубль': 'rub', 'рублей': 'rub',
-        'kzt': 'kzt', 'тенге': 'kzt', 'тг': 'kzt',
-        'byn': 'byn', 'бел': 'byn', 'белруб': 'byn',
-        'uzs': 'uzs', 'сум': 'uzs', 'сумов': 'uzs',
-        'ton': 'ton', 'тон': 'ton',
+    col_map = {
+        'rub':'bal_rub','uah':'bal_uah','kzt':'bal_kzt','byn':'bal_byn',
+        'ton':'bal_ton','stars':'bal_stars','usdt':'bal_usdt','btc':'bal_btc',
     }
-
-    currency = currency_map.get(currency)
-    if not currency:
-        bot.send_message(
-            message.chat.id,
-            "Валюта не распознана. Примеры:\nUAH: uah, грн\nRUB: rub, руб\nKZT: kzt, тенге\nBYN: byn\nUZS: uzs, сум\nTON: ton"
-        )
+    col = col_map.get(cur)
+    if not col:
+        bot.send_message(message.chat.id, f"Валюта не распознана. Доступные: {', '.join(col_map.keys())}")
         return
 
-    bal_col = f"bal_{currency}"
     conn = sqlite3.connect('king_deals.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT user_id FROM users WHERE user_id = ?", (target_id,))
-    if not cursor.fetchone():
-        cursor.execute("INSERT INTO users (user_id) VALUES (?)", (target_id,))
-    cursor.execute(f"UPDATE users SET {bal_col} = {bal_col} + ? WHERE user_id = ?", (amount, target_id))
-    cursor.execute(f"SELECT {bal_col} FROM users WHERE user_id = ?", (target_id,))
-    new_bal = cursor.fetchone()[0]
+    c    = conn.cursor()
+    c.execute("SELECT user_id FROM users WHERE user_id=?", (tid,))
+    if not c.fetchone():
+        c.execute("INSERT INTO users (user_id) VALUES (?)", (tid,))
+    c.execute(f"UPDATE users SET {col}={col}+? WHERE user_id=?", (amount, tid))
+    c.execute(f"SELECT {col} FROM users WHERE user_id=?", (tid,))
+    new_bal = c.fetchone()[0]
     conn.commit()
     conn.close()
 
-    bot.send_message(
-        message.chat.id,
-        f"{E_CHECK} Начислено <b>{amount} {currency.upper()}</b> пользователю <code>{target_id}</code>\n"
-        f"Новый баланс {currency.upper()}: <b>{new_bal}</b>",
-        parse_mode="HTML"
-    )
+    bot.send_message(message.chat.id,
+        f"{E_DONE} Зачислено <b>{amount} {cur.upper()}</b> → <code>{tid}</code>\nНовый баланс: <b>{new_bal}</b>",
+        parse_mode="HTML")
 
-# === KEEP-ALIVE + САМОПІНГ (тільки на Render) ===
+# === KEEP-ALIVE + САМОПІНГ ===
 app = Flask(__name__)
 
 @app.route('/')
@@ -908,30 +969,25 @@ def run_flask():
     serve(app, host="0.0.0.0", port=port)
 
 def self_ping():
-    render_url = os.environ.get("RENDER_EXTERNAL_URL", "")
-    if not render_url:
+    url = os.environ.get("RENDER_EXTERNAL_URL", "")
+    if not url:
         return
     while True:
-        time.sleep(840)  # кожні 14 хвилин
+        time.sleep(840)
         try:
-            requests.get(render_url, timeout=10)
+            requests.get(url, timeout=10)
             print("Self-ping OK")
         except Exception as e:
-            print(f"Self-ping failed: {e}")
+            print(f"Self-ping error: {e}")
 
 # === ЗАПУСК ===
 if __name__ == "__main__":
     if not os.environ.get("RENDER"):
-        print("Не Render — бот не запускається щоб не конфліктувати.")
+        print("Не Render — бот не запускається.")
         exit(0)
     print("King Deals бот запущено на Render!")
-    t1 = threading.Thread(target=run_flask)
-    t1.daemon = True
-    t1.start()
-    t2 = threading.Thread(target=self_ping)
-    t2.daemon = True
-    t2.start()
-    # Очищаємо вебхук і чекаємо поки старий polling завершиться
+    threading.Thread(target=run_flask, daemon=True).start()
+    threading.Thread(target=self_ping,  daemon=True).start()
     try:
         bot.delete_webhook(drop_pending_updates=True)
     except Exception:
