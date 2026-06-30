@@ -82,15 +82,15 @@ TEXTS = {
         'btn_reqs':      "🗃 Мои реквизиты",
         'btn_ref':       "🔗 Рефералы",
         'btn_lang':      "🌐 Язык / Lang",
-        'btn_support':   "Техподдержка",
-        'btn_back':      f"{E_BOX} Назад в меню",
-        'btn_back_step': "⬅ Назад",
+        'btn_support':   "💬 Техподдержка",
+        'btn_back':      "📦 Назад в меню",
+        'btn_back_step': "⬅️ Назад",
         'btn_top_up':    "🖥 Пополнить",
         'btn_withdraw':  "💸 Вывести",
         'deal_status': {
-            'created':   f'{E_TIME} Ожидает оплаты',
-            'paid':      f'{E_LOCK} Оплачена, ждёт подтверждения',
-            'completed': f'{E_DONE} Завершена',
+            'created':   '🕐 Ожидает оплаты',
+            'paid':      '🔒 Оплачена, ждёт подтверждения',
+            'completed': '✅ Завершена',
         },
     },
     'en': {
@@ -100,15 +100,15 @@ TEXTS = {
         'btn_reqs':      "🗃 My Requisites",
         'btn_ref':       "🔗 Referrals",
         'btn_lang':      "🌐 Язык / Lang",
-        'btn_support':   "Support",
-        'btn_back':      f"{E_BOX} Back to menu",
-        'btn_back_step': "⬅ Back",
+        'btn_support':   "💬 Support",
+        'btn_back':      "📦 Back to menu",
+        'btn_back_step': "⬅️ Back",
         'btn_top_up':    "🖥 Top Up",
         'btn_withdraw':  "💸 Withdraw",
         'deal_status': {
-            'created':   f'{E_TIME} Awaiting payment',
-            'paid':      f'{E_LOCK} Paid, awaiting confirmation',
-            'completed': f'{E_DONE} Completed',
+            'created':   '🕐 Awaiting payment',
+            'paid':      '🔒 Paid, awaiting confirmation',
+            'completed': '✅ Completed',
         },
     },
 }
@@ -166,7 +166,6 @@ def get_lang(user_id):
 
 def set_lang(user_id, lang):
     conn = sqlite3.connect('king_deals.db')
-    sqlite3.connect('king_deals.db').cursor()
     conn.execute("UPDATE users SET lang=? WHERE user_id=?", (lang, user_id))
     conn.commit()
     conn.close()
@@ -302,12 +301,12 @@ def screen_reqs(chat_id, uid, old_msg_id=None):
         )
     kb = types.InlineKeyboardMarkup(row_width=2)
     kb.add(
-        types.InlineKeyboardButton(f"{E_TON} TON-кошелёк" if lang=='ru' else f"{E_TON} TON wallet", callback_data="req_ton"),
-        types.InlineKeyboardButton(f"🖥 {'Карта' if lang=='ru' else 'Card'}", callback_data="req_card"),
+        types.InlineKeyboardButton("💎 TON-кошелёк" if lang=='ru' else "💎 TON wallet", callback_data="req_ton"),
+        types.InlineKeyboardButton("🖥 Карта" if lang=='ru' else "🖥 Card", callback_data="req_card"),
     )
     kb.add(
-        types.InlineKeyboardButton(f"{E_STARS} @username (Stars)", callback_data="req_stars"),
-        types.InlineKeyboardButton(f"💵 USDT (TRC20)", callback_data="req_usdt"),
+        types.InlineKeyboardButton("⭐ @username (Stars)", callback_data="req_stars"),
+        types.InlineKeyboardButton("💵 USDT (TRC20)", callback_data="req_usdt"),
     )
     kb.add(types.InlineKeyboardButton("₿ BTC", callback_data="req_btc"))
     kb.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
@@ -379,7 +378,7 @@ def screen_ref(chat_id, uid, old_msg_id=None):
             f"{E_USDT} Бонус: <b>50%</b> от комиссии с каждой сделки реферала!"
         )
     kb = types.InlineKeyboardMarkup()
-    kb.add(types.InlineKeyboardButton(f"{E_LINK} Скопировать реф. ссылку" if lang=='ru' else f"{E_LINK} Copy ref link", callback_data="ref_copy"))
+    kb.add(types.InlineKeyboardButton("🔗 Скопировать реф. ссылку" if lang=='ru' else "🔗 Copy ref link", callback_data="ref_copy"))
     kb.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
     send_screen(chat_id, BANNER_REF, text, kb, old_msg_id)
 
@@ -432,8 +431,8 @@ def screen_create_role(chat_id, uid, old_msg_id=None):
             f"{E_CROWN} <b>Seller</b> — you are selling an item/service...\n"
             f"{E_CART} <b>Buyer</b> — you are paying..."
         )
-        btn_sell = f"{E_CROWN} I'm the Seller"
-        btn_buy  = f"{E_CART} I'm the Buyer"
+        btn_sell = "👑 I'm the Seller"
+        btn_buy  = "🛒 I'm the Buyer"
     else:
         text = (
             f"{E_BAG} <b>Новая сделка</b>\n\n"
@@ -441,8 +440,8 @@ def screen_create_role(chat_id, uid, old_msg_id=None):
             f"{E_CROWN} <b>Продавец</b> — вы продаёте товар/услугу...\n"
             f"{E_CART} <b>Покупатель</b> — вы платите..."
         )
-        btn_sell = f"🔥 Я продавец"
-        btn_buy  = f"{E_CART} Я покупатель"
+        btn_sell = "🔥 Я продавец"
+        btn_buy  = "🛒 Я покупатель"
     kb = types.InlineKeyboardMarkup(row_width=2)
     kb.add(
         types.InlineKeyboardButton(btn_sell, callback_data="role_seller"),
@@ -468,7 +467,7 @@ def screen_pay_method(chat_id, uid, old_msg_id=None):
     kb = types.InlineKeyboardMarkup(row_width=2)
     kb.add(
         types.InlineKeyboardButton("🖥 Карта" if lang=='ru' else "🖥 Card",  callback_data="pm_card"),
-        types.InlineKeyboardButton(f"{E_STARS} Stars",                       callback_data="pm_stars"),
+        types.InlineKeyboardButton("⭐ Stars",                                 callback_data="pm_stars"),
     )
     kb.add(types.InlineKeyboardButton(f"💰 {'Крипта' if lang=='ru' else 'Crypto'}", callback_data="pm_crypto"))
     kb.add(
@@ -487,9 +486,9 @@ def screen_crypto_choose(chat_id, uid, old_msg_id=None):
     )
     kb = types.InlineKeyboardMarkup(row_width=3)
     kb.add(
-        types.InlineKeyboardButton(f"{E_TON} TON",   callback_data="cur_TON"),
-        types.InlineKeyboardButton(f"{E_USDT} USDT", callback_data="cur_USDT"),
-        types.InlineKeyboardButton(f"₿ BTC",          callback_data="cur_BTC"),
+        types.InlineKeyboardButton("💎 TON",  callback_data="cur_TON"),
+        types.InlineKeyboardButton("💵 USDT", callback_data="cur_USDT"),
+        types.InlineKeyboardButton("₿ BTC",   callback_data="cur_BTC"),
     )
     kb.add(
         types.InlineKeyboardButton(tx['btn_back_step'], callback_data="pm_back"),
@@ -702,7 +701,7 @@ def show_deal_card(message, deal_id):
     kb2 = types.InlineKeyboardMarkup()
     kb2.add(
         types.InlineKeyboardButton("💳 Оплатить с баланса", callback_data=f"pay_{deal_id}"),
-        types.InlineKeyboardButton(f"{E_CANCEL} Отказаться",  callback_data=f"cancel_{deal_id}"),
+        types.InlineKeyboardButton("❌ Отказаться",          callback_data=f"cancel_{deal_id}"),
     )
     send_screen(
         message.chat.id, BANNER_CREATE,
@@ -794,8 +793,11 @@ def handle_cb(call):
     elif d == "role_buyer":
         kb = types.InlineKeyboardMarkup()
         kb.add(types.InlineKeyboardButton(tx['btn_back'], callback_data="menu_main"))
+        if uid in user_states:
+            del user_states[uid]
         send_screen(cid, BANNER_CREATE,
-            f"{E_CART} <b>{'Paste the deal link from the seller:' if lang=='en' else 'Вставьте ссылку на сделку от продавца:'}</b>",
+            f"🛒 <b>{'To join a deal, open the link from the seller.' if lang=='en' else 'Чтобы вступить в сделку — откройте ссылку от продавца.'}</b>\n\n"
+            f"<i>{'The seller sends you a link like: t.me/bot?start=deal_XXXX' if lang=='en' else 'Продавец пришлёт вам ссылку вида: t.me/bot?start=deal_XXXX'}</i>",
             kb, mid)
 
     # спосіб оплати
