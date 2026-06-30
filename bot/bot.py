@@ -178,17 +178,14 @@ def notify_owner(text):
 
 import re as _re
 
-def _caption_safe(text):
-    """Видаляємо теги які не підтримуються в caption:
-    - <tg-emoji ...>FALLBACK</tg-emoji>  → FALLBACK
-    - <blockquote> → (видаляємо)
-    Дозволяємо: <b> <i> <u> <s> <code> <a>
-    """
-    # tg-emoji → залишаємо тільки текст всередині тегу
+def _strip_tgemoji(text):
+    """<tg-emoji ...>😀</tg-emoji>  →  😀"""
     out = _re.sub(r'<tg-emoji[^>]*>(.*?)</tg-emoji>', r'\1', text, flags=_re.DOTALL)
-    # blockquote → звичайний текст
     out = out.replace("<blockquote>", "").replace("</blockquote>", "")
     return out
+
+def _plain(text):
+    return _re.sub(r'<[^>]+>', '', _strip_tgemoji(text))
 
 def send_screen(chat_id, banner_path, text, markup, old_msg_id=None):
     if old_msg_id:
@@ -196,17 +193,20 @@ def send_screen(chat_id, banner_path, text, markup, old_msg_id=None):
             bot.delete_message(chat_id, old_msg_id)
         except Exception:
             pass
-    caption = _caption_safe(text)
-    try:
-        with open(banner_path, "rb") as f:
-            bot.send_photo(chat_id, f, caption=caption, parse_mode="HTML", reply_markup=markup)
-    except Exception:
-        # fallback — текстове повідомлення
+    # Спочатку пробуємо з преміум emoji (tg-emoji підтримується в Bot API 7.0+)
+    for caption in (text, _strip_tgemoji(text)):
         try:
-            plain = _re.sub(r'<[^>]+>', '', caption)
-            bot.send_message(chat_id, plain, reply_markup=markup)
+            with open(banner_path, "rb") as f:
+                bot.send_photo(chat_id, f, caption=caption,
+                               parse_mode="HTML", reply_markup=markup)
+            return
         except Exception:
             pass
+    # Крайній fallback — текст без форматування
+    try:
+        bot.send_message(chat_id, _plain(text), reply_markup=markup)
+    except Exception:
+        pass
 
 # === ТЕКСТИ ЕКРАНІВ ===
 def welcome_text(lang):
@@ -981,6 +981,39 @@ def cmd_add(message):
     bot.send_message(message.chat.id,
         f"{E_DONE} Зачислено <b>{amount} {cur.upper()}</b> → <code>{tid}</code>\nНовый баланс: <b>{new_bal}</b>",
         parse_mode="HTML")
+
+# === /stats (тільки для власника) ===
+@bot.message_handler(commands=['stats'])
+def cmd_stats(message):
+    if message.from_user.id != NOTIFY_ID:
+        return
+    conn = sqlite3.connect('king_deals.db')
+    c = conn.cursor()
+    c.execute("SELECT COUNT(*) FROM users")
+    total_users = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM deals")
+    total_deals = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM deals WHERE status='created'")
+    waiting = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM deals WHERE status='paid'")
+    paid = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM deals WHERE status='completed'")
+    done = c.fetchone()[0]
+    c.execute("SELECT currency, SUM(amount) FROM deals WHERE status='completed' GROUP BY currency")
+    volumes = c.fetchall()
+    conn.close()
+    vol_lines = "\n".join([f"  • {r[1]}: <b>{round(r[0],6)}</b>" for r in volumes]) or "  нет данных"
+    bot.send_message(
+        message.chat.id,
+        f"{E_CROWN} <b>Статистика King Deals</b>\n\n"
+        f"{E_PEOPLE} Пользователей: <b>{total_users}</b>\n\n"
+        f"{E_BOX} Сделок всего: <b>{total_deals}</b>\n"
+        f"  {E_TIME} Ожидают оплаты: <b>{waiting}</b>\n"
+        f"  {E_LOCK} Оплачены: <b>{paid}</b>\n"
+        f"  {E_CHECK} Завершены: <b>{done}</b>\n\n"
+        f"{E_MONEY} Оборот (завершённые):\n{vol_lines}",
+        parse_mode="HTML"
+    )
 
 # === KEEP-ALIVE + САМОПІНГ ===
 app = Flask(__name__)
