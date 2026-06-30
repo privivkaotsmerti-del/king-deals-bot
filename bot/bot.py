@@ -895,7 +895,7 @@ def handle_cb(call):
             kb, mid)
         with open(BANNER_CREATE,"rb") as f:
             bot.send_photo(seller_id, f,
-                caption=f"{E_TIME} <b>Ваша сделка оплачена!</b>\nПередайте товар через @{SUPPORT_USER}.",
+                caption=f"🕐 <b>Ваша сделка оплачена!</b>\nПередайте товар через @{SUPPORT_USER}.",
                 parse_mode="HTML")
 
     elif d.startswith("cancel_"):
@@ -930,7 +930,7 @@ def handle_cb(call):
                     (bonus, bonus, ref[0]))
                 with open(BANNER_REF,"rb") as f:
                     bot.send_photo(ref[0], f,
-                        caption=f"{E_COIN} Реферальный бонус: +{bonus} {currency}!", parse_mode="HTML")
+                        caption=f"💰 Реферальный бонус: +{bonus} {currency}!", parse_mode="HTML")
             except Exception:
                 pass
         conn.commit()
@@ -941,7 +941,7 @@ def handle_cb(call):
             f"{E_DONE} <b>Сделка завершена!</b>\nСпасибо, что используете King Deals! {E_HAND}", kb, mid)
         with open(BANNER_BAL,"rb") as f:
             bot.send_photo(seller_id, f,
-                caption=f"{E_MONEY} <b>Сделка завершена!</b>\nВам зачислено {amount} {currency}.", parse_mode="HTML")
+                caption=f"💰 <b>Сделка завершена!</b>\nВам зачислено {amount} {currency}.", parse_mode="HTML")
 
 # === /add (поповнення балансу) ===
 @bot.message_handler(commands=['add'])
