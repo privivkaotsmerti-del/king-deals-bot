@@ -182,8 +182,19 @@ def send_screen(chat_id, banner_path, text, markup, old_msg_id=None):
             bot.delete_message(chat_id, old_msg_id)
         except Exception:
             pass
-    with open(banner_path, "rb") as f:
-        bot.send_photo(chat_id, f, caption=text, parse_mode="HTML", reply_markup=markup)
+    # Telegram не підтримує <blockquote> в caption — замінюємо
+    clean = text.replace("<blockquote>", "<i>").replace("</blockquote>", "</i>")
+    try:
+        with open(banner_path, "rb") as f:
+            bot.send_photo(chat_id, f, caption=clean, parse_mode="HTML", reply_markup=markup)
+    except Exception as e:
+        # fallback — текстове повідомлення без HTML
+        try:
+            import re
+            plain = re.sub(r'<[^>]+>', '', clean)
+            bot.send_message(chat_id, plain, reply_markup=markup)
+        except Exception:
+            pass
 
 # === ТЕКСТИ ЕКРАНІВ ===
 def welcome_text(lang):
